@@ -10,6 +10,9 @@ def main():
     st.write("<p style='text-align: center;'>Upload your transportation data or enter details manually if you don't have a file.</p>", unsafe_allow_html=True)
     st.markdown("<hr style='border-top: 3px solid #bbb;'>", unsafe_allow_html=True)
 
+    # Information note: Uploading CSV generates a professional report
+    st.info("Note: Uploading a CSV file will generate an additional professional report.")
+
     # Data readiness flag
     data_ready = False
 
@@ -77,3 +80,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
