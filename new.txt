@@ -1,259 +1,74 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>碳足迹计算器</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
-    <script>
-        function showSection(sectionId) {
-            document.querySelectorAll('section').forEach(section => {
-                section.style.display = 'none';
-            });
-            document.getElementById(sectionId).style.display = 'block';
-        }
-        window.onload = function() {
-            showSection('mainPage');
-        };
-    </script>
-    <style>
-        /* 全局样式 */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+import streamlit as st
 
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: #f8f9fa;
-            color: #333;
-            line-height: 1.6;
-        }
+# Define a function to show different sections
+def show_section(section):
+    st.session_state['current_section'] = section
 
-        /* 导航栏样式 */
-        nav {
-            background: linear-gradient(45deg, #2d6187, #34d1bf);
-            padding: 15px 0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
+# Initialize session state for navigation
+if 'current_section' not in st.session_state:
+    st.session_state['current_section'] = 'mainPage'
 
-        nav ul {
-            display: flex;
-            justify-content: center;
-            list-style: none;
-        }
+# Define the sections
+def main_page():
+    st.title("欢迎来到碳足迹计算器")
+    st.write("帮助您计算碳足迹并提供可持续生活建议")
 
-        nav ul li {
-            margin: 0 15px;
-        }
+    st.button("开始计算", on_click=lambda: show_section('calculatorPage'))
 
-        nav ul li a {
-            color: #fff;
-            font-weight: 500;
-            padding: 10px 20px;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
+    st.subheader("碳排放的全球统计")
+    st.write("每年约有 510 亿吨二氧化碳排放……")
 
-        nav ul li a:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-        }
+    st.subheader("环保小贴士")
+    st.write("减少食物浪费、选择公共交通、减少塑料使用……")
 
-        /* 主页面欢迎区 */
-        .welcome-section {
-            background: linear-gradient(to right, #34d1bf, #4d6187);
-            color: #fff;
-            padding: 80px 20px;
-            text-align: center;
-            min-height: 400px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
+def calculator_page():
+    st.title("碳计算器")
+    st.write("在此输入您的日常生活数据以计算碳排放量。")
 
-        .welcome-section h1 {
-            font-size: 2.5em;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
+    electricity = st.number_input("电力使用量 (kWh):", min_value=0.0, step=0.1)
+    gas = st.number_input("天然气使用量 (立方米):", min_value=0.0, step=0.1)
+    transport = st.number_input("交通（公里数）:", min_value=0.0, step=0.1)
 
-        .start-button {
-            background-color: #f77f00;
-            color: #fff;
-            padding: 15px 30px;
-            text-decoration: none;
-            border-radius: 25px;
-            margin-top: 20px;
-            font-size: 1.1em;
-            font-weight: 500;
-            transition: background 0.3s, transform 0.3s;
-            cursor: pointer;
-        }
+    if st.button("计算"):
+        # Simple formula for demonstration, you can replace with actual calculation logic
+        carbon_footprint = electricity * 0.5 + gas * 1.2 + transport * 0.3
+        st.write(f"您的碳足迹估算为: {carbon_footprint:.2f} kg CO₂")
 
-        .start-button:hover {
-            background-color: #d65a00;
-            transform: scale(1.1);
-        }
+def education_page():
+    st.title("环保教育")
+    st.write("了解碳排放和气候变化的影响，并获得日常生活中降低碳足迹的技巧。")
 
-        /* 信息区 */
-        .info-section {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            gap: 20px;
-            padding: 40px 20px;
-            background-color: #f1f3f4;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
-            border-top: 4px solid #34d1bf;
-            border-bottom: 4px solid #34d1bf;
-        }
+def history_page():
+    st.title("历史数据")
+    st.write("查看您的碳排放历史记录，跟踪您的环保进步。")
 
-        .info-card {
-            background: #fff;
-            border-radius: 15px;
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            width: 45%;
-            min-width: 300px;
-            transition: transform 0.3s;
-        }
+def contact_page():
+    st.title("联系我们")
+    st.write("如有任何疑问或建议，请通过以下方式联系我们。")
 
-        .info-card:hover {
-            transform: translateY(-10px);
-        }
+    name = st.text_input("姓名")
+    email = st.text_input("邮箱")
+    message = st.text_area("消息")
 
-        .info-card h2 {
-            font-size: 1.4em;
-            margin-bottom: 10px;
-        }
+    if st.button("发送"):
+        st.write("感谢您的反馈！我们会尽快回复您。")
 
-        .info-card p {
-            color: #666;
-        }
+# Navigation bar at the top
+st.sidebar.title("导航栏")
+st.sidebar.button("主页", on_click=lambda: show_section('mainPage'))
+st.sidebar.button("碳计算器", on_click=lambda: show_section('calculatorPage'))
+st.sidebar.button("环保教育", on_click=lambda: show_section('educationPage'))
+st.sidebar.button("历史数据", on_click=lambda: show_section('historyPage'))
+st.sidebar.button("联系我们", on_click=lambda: show_section('contactPage'))
 
-        /* 页面内容的样式 */
-        section {
-            display: none;
-            padding: 40px 20px;
-            max-width: 800px;
-            margin: auto;
-            text-align: center;
-            animation: fadeIn 0.5s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* 表单和按钮的样式 */
-        form {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        label {
-            font-size: 1.1em;
-            margin: 15px 0 5px;
-            color: #333;
-        }
-
-        input, textarea, button {
-            padding: 10px;
-            width: 80%;
-            max-width: 400px;
-            margin-top: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 1em;
-            outline: none;
-        }
-
-        button {
-            background-color: #34d1bf;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 20px;
-        }
-
-        button:hover {
-            background-color: #28a397;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- 导航栏 -->
-    <nav>
-        <ul>
-            <li><a onclick="showSection('mainPage')">主页</a></li>
-            <li><a onclick="showSection('calculatorPage')">碳计算器</a></li>
-            <li><a onclick="showSection('educationPage')">环保教育</a></li>
-            <li><a onclick="showSection('historyPage')">历史数据</a></li>
-            <li><a onclick="showSection('contactPage')">联系我们</a></li>
-        </ul>
-    </nav>
-
-    <!-- 主页面 -->
-    <section id="mainPage" class="welcome-section">
-        <h1>欢迎来到碳足迹计算器</h1>
-        <p>帮助您计算碳足迹并提供可持续生活建议</p>
-        <a class="start-button" onclick="showSection('calculatorPage')">开始计算</a>
-
-        <!-- 统计数据和环保小贴士 -->
-        <div class="info-section">
-            <div class="info-card">
-                <h2>碳排放的全球统计</h2>
-                <p>每年约有 510 亿吨二氧化碳排放……</p>
-            </div>
-            <div class="info-card">
-                <h2>环保小贴士</h2>
-                <p>减少食物浪费、选择公共交通、减少塑料使用……</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- 碳计算器页面 -->
-    <section id="calculatorPage">
-        <h1>碳计算器</h1>
-        <p>在此输入您的日常生活数据以计算碳排放量。</p>
-        <form>
-            <label for="electricity">电力使用量 (kWh): </label>
-            <input type="number" id="electricity" name="electricity" placeholder="输入电力使用量">
-            <label for="gas">天然气使用量 (立方米): </label>
-            <input type="number" id="gas" name="gas" placeholder="输入天然气使用量">
-            <label for="transport">交通（公里数）: </label>
-            <input type="number" id="transport" name="transport" placeholder="输入交通里程">
-            <button type="button">计算</button>
-        </form>
-    </section>
-
-    <!-- 环保教育页面 -->
-    <section id="educationPage">
-        <h1>环保教育</h1>
-        <p>了解碳排放和气候变化的影响，并获得日常生活中降低碳足迹的技巧。</p>
-    </section>
-
-    <!-- 历史数据页面 -->
-    <section id="historyPage">
-        <h1>历史数据</h1>
-        <p>查看您的碳排放历史记录，跟踪您的环保进步。</p>
-    </section>
-
-    <!-- 联系我们页面 -->
-    <section id="contactPage">
-        <h1>联系我们</h1>
-        <p>如有任何疑问或建议，请通过以下方式联系我们。</p>
-        <form>
-            <label for="name">姓名: </label>
-            <input type="text" id="name" name="name" placeholder="输入您的姓名">
-            <label for="email">邮箱: </
+# Display the selected section
+if st.session_state['current_section'] == 'mainPage':
+    main_page()
+elif st.session_state['current_section'] == 'calculatorPage':
+    calculator_page()
+elif st.session_state['current_section'] == 'educationPage':
+    education_page()
+elif st.session_state['current_section'] == 'historyPage':
+    history_page()
+elif st.session_state['current_section'] == 'contactPage':
+    contact_page()
