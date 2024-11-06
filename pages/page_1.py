@@ -1,7 +1,56 @@
 import streamlit as st
-
+import base64
 
 def page_1():
+    # 将图片转换为 Base64
+    def get_base64_image(file_path):
+        with open(file_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode()
+
+    base64_image = get_base64_image("/workspaces/DSops-GHG-Caculator/src/background.jpg")
+
+    # 自定义 CSS 样式，设置背景和进度条样式
+    page_bg_img = f'''
+    <style>
+    .stApp {{
+        background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url("data:image/jpg;base64,{base64_image}");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-position: center;
+        color: black; /* 黑色文字 */
+        font-family: 'Arial', sans-serif;
+    }}
+    .block-container {{
+        background-color: rgba(255, 255, 255, 0.5); /* 更加透明的背景 */
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
+        width: 80%; /* 设置宽度为页面的60%，呈竖直布局 */
+        margin: auto; /* 居中对齐 */
+    }}
+    /* 进度条样式 */
+    .progress-bar-container {{
+        width: 100%;
+        background-color: #e0e0e0;
+        height: 20px;
+        border-radius: 10px;
+    }}
+    .progress-bar {{
+        background-color: #4CAF50; /* 绿色进度条 */
+        height: 100%;
+        border-radius: 10px;
+    }}
+    .progress-nodes {{
+        display: flex;
+        justify-content: space-between;
+        font-size: 1rem; /* 增大字体 */
+        color: black;
+    }}
+    </style>
+    '''
+    st.markdown(page_bg_img, unsafe_allow_html=True)
+
     st.title("🏢 GHG Emissions Calculator")
     st.markdown("### Calculate GHG emissions for an office building in Singapore")
     st.write("Please enter the relevant information for each activity category:")
@@ -29,14 +78,14 @@ def page_1():
     # 显示进度条和节点
     def display_progress_bar_with_nodes(progress, nodes, current_index):
         progress_bar_html = f"""
-        <div style="width: 100%; background-color: #e0e0e0; height: 20px; border-radius: 10px;">
-            <div style="width: {progress * 100}%; background-color: #add8e6; height: 100%; border-radius: 10px;"></div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" style="width: {progress * 100}%;"></div>
         </div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.6rem;">
+        <div class="progress-nodes">
         """
         for i, node in enumerate(nodes):
             if i == current_index:
-                progress_bar_html += f"<span style='color: #add8e6; font-weight: bold;'>⬤ {node}</span>"
+                progress_bar_html += f"<span style='font-weight: bold;'>⬤ {node}</span>"
             else:
                 progress_bar_html += f"<span>⬤ {node}</span>"
         progress_bar_html += "</div>"
@@ -159,12 +208,17 @@ def page_1():
                 return False
         return True
 
-    # 下一步和上一步按钮
-    col1, col2 = st.columns(2)
-    if col1.button("⬅️ Previous") and st.session_state.activity_index > 0:
-        st.session_state.activity_index -= 1
+    col1, _, col2 = st.columns([1, 8, 1]) 
 
-    if col2.button("Next ➡️"):
+    # 修改 Previous 按钮逻辑，当 activity_index 为 0 时跳转到首页
+    if col1.button("Previous"):
+        if st.session_state.activity_index > 0:
+            st.session_state.activity_index -= 1
+        elif st.session_state.activity_index == 0:
+            st.session_state.current_page = 0  # 返回首页
+
+    # 修改 Next 按钮逻辑，当 activity_index 到达最后一个活动时跳转到下一页
+    if col2.button("Next"):
         if st.session_state.activity_index == 0:  # 如果当前活动是第一个必填项
             if is_basic_information_complete():
                 st.session_state.activity_index += 1
@@ -172,3 +226,6 @@ def page_1():
                 st.warning("Please complete all required fields before continuing.")
         elif st.session_state.activity_index < len(activity_types) - 1:
             st.session_state.activity_index += 1
+        elif st.session_state.activity_index == len(activity_types) - 1:
+            st.session_state.current_page = 2  # 跳转到 page_2
+
