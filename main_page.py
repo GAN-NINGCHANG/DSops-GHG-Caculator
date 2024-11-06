@@ -125,7 +125,3 @@ st.markdown('<a id="contact"></a>', unsafe_allow_html=True)
 st.header("Contact Us")
 st.write("Feel free to reach us at xxxxs@nus.edu.sg")
 
-# "Take the Questionnaire" button
-if st.button("Start estimating"):
-    # 跳转到 input.py 页面
-    input.app()
