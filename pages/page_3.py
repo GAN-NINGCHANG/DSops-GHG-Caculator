@@ -6,220 +6,196 @@ from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 import base64
+from reportlab.platypus import Table, TableStyle
+from reportlab.lib import colors
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics.charts.barcharts import VerticalBarChart
 
-# 设置网页标题和图标
-st.set_page_config(
-    page_title='Company GHG Emissions Dashboard',
-    page_icon='🌍',
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
 
-# 将图片转换为 Base64
-def get_base64_image(file_path):
-    with open(file_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode()
+def page_3():
+    # 设置网页标题和图标
 
-# 获取 Base64 编码的图片
-base64_image = get_base64_image("/workspaces/gdp-dashboard/image/istockphoto.jpg")
+    # 将图片转换为 Base64
+    def get_base64_image(file_path):
+        with open(file_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode()
 
-# 自定义 CSS 样式设置背景图片
-page_bg_img = f'''
-<style>
-.stApp {{
-    background-image: url("data:image/jpg;base64,{base64_image}");
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-position: center;
-    color: #333;
-    font-family: 'Arial', sans-serif;
-}}
-.block-container {{
-    background-color: rgba(255, 255, 255, 0.8);
-    padding: 2rem;
-    border-radius: 15px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
-}}
-.sidebar .sidebar-content {{
-    background: rgba(255, 255, 255, 0.9);
-    padding: 1rem;
-    border-radius: 10px;
-}}
-.css-1q8dd3e p {{
-    font-size: 1.1rem;
-}}
-</style>
-'''
-st.markdown(page_bg_img, unsafe_allow_html=True)
+    # 获取 Base64 编码的图片
+    base64_image = get_base64_image("/workspaces/DSops-GHG-Caculator/src/istockphoto.jpg")
 
-# 应用标题和描述
-st.title("🌍 Company GHG Emissions Dashboard")
-st.markdown("""
-Welcome to the Company GHG Emissions Dashboard! Here, you can upload a CSV file containing data on greenhouse gas (GHG) emissions.
-Select a company to view its GHG emission profile and compare it with other companies. Discover insights into emission factors
-and identify companies with similar profiles.
-""")
+    # 自定义 CSS 样式设置背景图片
+    page_bg_img = f'''
+    <style>
+    .stApp {{
+        background-image: url("data:image/jpg;base64,{base64_image}");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-position: center;
+        color: #333;
+        font-family: 'Arial', sans-serif;
+    }}
+    .block-container {{
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+    }}
+    .sidebar .sidebar-content {{
+        background: rgba(255, 255, 255, 0.9);
+        padding: 1rem;
+        border-radius: 10px;
+    }}
+    .css-1q8dd3e p {{
+        font-size: 1.1rem;
+    }}
+    </style>
+    '''
+    st.markdown(page_bg_img, unsafe_allow_html=True)
 
-# 上传数据
-uploaded_file = st.file_uploader("Upload your GHG emissions CSV file", type=['csv'])
+    # 应用标题和描述
+    st.title("🌍 Company GHG Emissions Dashboard")
+    st.markdown("""
+    Welcome to the Company GHG Emissions Dashboard! Here, you can upload a CSV file containing data on greenhouse gas (GHG) emissions.
+    Select a company to view its GHG emission profile and compare it with other companies. Discover insights into emission factors
+    and identify companies with similar profiles.
+    """)
 
-if uploaded_file is not None:
-    # 读取上传的CSV文件
-    df = pd.read_csv(uploaded_file)
+    # 上传数据
+    uploaded_file = st.file_uploader("Upload your GHG emissions CSV file", type=['csv'])
 
-    # 检查数据是否包含所需的列
-    required_columns = ['BuildingName', 'AC', 'GAS', 'COLDING', 'COMMUTE', 'RENEWABLE']
-    if all(col in df.columns for col in required_columns):
+    if uploaded_file is not None:
+        # 读取上传的CSV文件
+        df = pd.read_csv(uploaded_file)
 
-        # 添加分隔符
-        st.markdown("---")
+        # 检查数据是否包含所需的列
+        required_columns = ['BuildingName', 'AC', 'GAS', 'COLDING', 'COMMUTE', 'RENEWABLE']
+        if all(col in df.columns for col in required_columns):
 
-        # 用户选择自己的公司
-        st.sidebar.header("Select a Company")
-        companies = df['BuildingName'].unique()
-        user_company = st.sidebar.selectbox(
-            '🏢 Choose a company:', 
-            companies
-        )
+            # 添加分隔符
+            st.markdown("---")
 
-        if user_company:
-            # 计算与用户公司消耗量最接近的五个公司（使用欧氏距离）
-            def calculate_euclidean_distance(df, user_company):
-                user_row = df[df['BuildingName'] == user_company].iloc[:, 1:].values
-                other_rows = df[df['BuildingName'] != user_company].iloc[:, 1:].values
-                distances = np.linalg.norm(other_rows - user_row, axis=1)
-                closest_indices = np.argsort(distances)[:5]
-                closest_companies = df['BuildingName'].iloc[closest_indices].values
-                return closest_companies
-
-            closest_companies = calculate_euclidean_distance(df, user_company)
-
-            # 显示与用户公司最接近的5个公司
-            st.markdown("### 🌐 Top 5 Companies with Similar GHG Profiles")
-            st.info(
-                f"Based on GHG emissions, here are the companies most similar to **{user_company}**. "
-                "This comparison can help you understand where your company stands in relation to others."
+            # 用户选择自己的公司
+            st.sidebar.header("Select a Company")
+            companies = df['BuildingName'].unique()
+            user_company = st.sidebar.selectbox(
+                '🏢 Choose a company:', 
+                companies
             )
-            st.markdown(", ".join([f"🏢 **{company}**" for company in closest_companies]))
 
-            # 展示公司 GHG 消耗数据
-            st.markdown("### 📊 GHG Emissions Overview")
-            st.info(f"Detailed GHG emissions data for **{user_company}**.")
-            user_data = df[df['BuildingName'] == user_company].iloc[0, 1:]
-            max_consumption = user_data.idxmax()
+            if user_company:
+                # 计算与用户公司消耗量最接近的五个公司（使用欧氏距离）
+                def calculate_euclidean_distance(df, user_company):
+                    user_row = df[df['BuildingName'] == user_company].iloc[:, 1:].values
+                    other_rows = df[df['BuildingName'] != user_company].iloc[:, 1:].values
+                    distances = np.linalg.norm(other_rows - user_row, axis=1)
+                    closest_indices = np.argsort(distances)[:5]
+                    closest_companies = df['BuildingName'].iloc[closest_indices].values
+                    return closest_companies
 
-            cols = st.columns(5)
-            for i, col_name in enumerate(user_data.index):
-                cols[i].metric(
-                    label=col_name,
-                    value=f"{user_data[col_name]:.2f} tons",
-                    delta=f"Top Emission" if col_name == max_consumption else None
+                closest_companies = calculate_euclidean_distance(df, user_company)
+
+                # 显示与用户公司最接近的5个公司
+                st.markdown("### 🌐 Top 5 Companies with Similar GHG Profiles")
+                st.info(
+                    f"Based on GHG emissions, here are the companies most similar to **{user_company}**. "
+                    "This comparison can help you understand where your company stands in relation to others."
                 )
+                st.markdown(", ".join([f"🏢 **{company}**" for company in closest_companies]))
 
-            st.warning(f"🚨 The largest GHG emission factor for **{user_company}** is **{max_consumption}**.")
+                # 展示公司 GHG 消耗数据
+                st.markdown("### 📊 GHG Emissions Overview")
+                st.info(f"Detailed GHG emissions data for **{user_company}**.")
+                user_data = df[df['BuildingName'] == user_company].iloc[0, 1:]
+                max_consumption = user_data.idxmax()
 
-            # 绘制用户公司及其五个最接近公司的堆叠柱状图
-            st.markdown("### 📈 GHG Emissions Comparison")
-            closest_df = df[df['BuildingName'].isin([user_company] + list(closest_companies))]
+                cols = st.columns(5)
+                for i, col_name in enumerate(user_data.index):
+                    cols[i].metric(
+                        label=col_name,
+                        value=f"{user_data[col_name]:.2f} tons",
+                        delta=f"Top Emission" if col_name == max_consumption else None
+                    )
 
-            closest_melted_df = closest_df.melt(id_vars='BuildingName', 
-                                                value_vars=['AC', 'GAS', 'COLDING', 'COMMUTE', 'RENEWABLE'],
-                                                var_name='Emission Type', 
-                                                value_name='Emissions (tons)')
+                st.warning(f"🚨 The largest GHG emission factor for **{user_company}** is **{max_consumption}**.")
 
-            if not closest_melted_df.empty:
-                closest_stacked_bar = alt.Chart(closest_melted_df).mark_bar().encode(
-                    x=alt.X('BuildingName:N', title='Company Name'),
-                    y=alt.Y('sum(Emissions (tons)):Q', title='Total GHG Emissions (tons)'),
-                    color='Emission Type:N',
-                    tooltip=['BuildingName', 'Emission Type', 'Emissions (tons)']
-                ).properties(
-                    width=800,
-                    height=400
-                ).interactive()
+                # 绘制用户公司及其五个最接近公司的堆叠柱状图
+                st.markdown("### 📈 GHG Emissions Comparison")
+                closest_df = df[df['BuildingName'].isin([user_company] + list(closest_companies))]
 
-                st.altair_chart(closest_stacked_bar, use_container_width=True)
-            else:
-                st.write("No data available for the selected companies.")
+                closest_melted_df = closest_df.melt(id_vars='BuildingName', 
+                                                    value_vars=['AC', 'GAS', 'COLDING', 'COMMUTE', 'RENEWABLE'],
+                                                    var_name='Emission Type', 
+                                                    value_name='Emissions (tons)')
 
-            # 添加生成 PDF 的功能
-            st.markdown("### 📝 Download Emission Report")
-            st.info("Generate a PDF report to save or share the GHG emissions data.")
-            if st.button("Generate PDF"):
-                pdf_buffer = BytesIO()
-                c = canvas.Canvas(pdf_buffer, pagesize=letter)
+                if not closest_melted_df.empty:
+                    closest_stacked_bar = alt.Chart(closest_melted_df).mark_bar().encode(
+                        x=alt.X('BuildingName:N', title='Company Name'),
+                        y=alt.Y('sum(Emissions (tons)):Q', title='Total GHG Emissions (tons)'),
+                        color='Emission Type:N',
+                        tooltip=['BuildingName', 'Emission Type', 'Emissions (tons)']
+                    ).properties(
+                        width=800,
+                        height=400
+                    ).interactive()
 
-                # 添加标题
-                c.setFont("Helvetica-Bold", 16)
-                c.drawString(100, 800, "GHG Emissions Report")
+                    st.altair_chart(closest_stacked_bar, use_container_width=True)
+                else:
+                    st.write("No data available for the selected companies.")
 
-                # 添加段落
-                c.setFont("Helvetica", 12)
-                c.drawString(100, 780, f"Company: {user_company}")
-                c.drawString(100, 760, f"Largest GHG emission factor: {max_consumption}")
+                # 添加生成 PDF 的功能
+                st.markdown("### 📝 Download Emission Report")
+                st.info("Generate a PDF report to save or share the GHG emissions data.")
+                if st.button("Generate PDF"):
+                    pdf_buffer = BytesIO()
+                    c = canvas.Canvas(pdf_buffer, pagesize=letter)
 
-                # 添加表格
-                from reportlab.platypus import Table, TableStyle
-                from reportlab.lib import colors
+                    # 添加标题
+                    c.setFont("Helvetica-Bold", 16)
+                    c.drawString(100, 800, "GHG Emissions Report")
 
-                # 准备数据
-                data = [['Company', 'AC', 'GAS', 'COLDING', 'COMMUTE', 'RENEWABLE']]
-                for company in closest_companies:
-                    row = [company] + df[df['BuildingName'] == company].iloc[0, 1:].tolist()
-                    data.append(row)
+                    # 添加段落
+                    c.setFont("Helvetica", 12)
+                    c.drawString(100, 780, f"Company: {user_company}")
+                    c.drawString(100, 760, f"Largest GHG emission factor: {max_consumption}")
 
-                # 创建表格
-                table = Table(data)
-                table.setStyle(TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ]))
+                    # 准备数据
+                    data = [['Company', 'AC', 'GAS', 'COLDING', 'COMMUTE', 'RENEWABLE']]
+                    for company in closest_companies:
+                        row = [company] + df[df['BuildingName'] == company].iloc[0, 1:].tolist()
+                        data.append(row)
 
-                # 绘制表格
-                table.wrapOn(c, 100, 580)
-                table.drawOn(c, 100, 580)
+                    # 创建表格
+                    table = Table(data)
+                    table.setStyle(TableStyle([
+                        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                    ]))
 
-                # 添加图表
-                from reportlab.graphics.shapes import Drawing
-                from reportlab.graphics.charts.barcharts import VerticalBarChart
+                    # 绘制表格和图表
+                    table.wrapOn(c, 100, 580)
+                    table.drawOn(c, 100, 580)
 
-                drawing = Drawing(400, 200)
-                chart = VerticalBarChart()
-                chart.x = 50
-                chart.y = 50
-                chart.height = 125
-                chart.width = 300
-                chart.data = [user_data.values.tolist()]
-                chart.barWidth = 10
-                chart.categoryAxis.categoryNames = user_data.index.tolist()
-                chart.categoryAxis.labels.angle = 45
-                chart.categoryAxis.labels.boxAnchor = 'ne'
-                drawing.add(chart)
+                    # 绘制边框和背景
+                    c.setStrokeColor(colors.grey)
+                    c.setLineWidth(1)
+                    c.rect(50, 50, 500, 700, stroke=1, fill=0)
 
-                # 绘制图表
-                drawing.drawOn(c, 100, 380)
+                    c.save()
+                    pdf_buffer.seek(0)
 
-                # 绘制边框和背景
-                c.setStrokeColor(colors.grey)
-                c.setLineWidth(1)
-                c.rect(50, 50, 500, 700, stroke=1, fill=0)
+                    # 提供 PDF 下载链接
+                    st.download_button(
+                        label="Download PDF",
+                        data=pdf_buffer,
+                        file_name="ghg_emission_report.pdf",
+                        mime="application/pdf"
+                    )
 
-                c.save()
-                pdf_buffer.seek(0)
-
-                # 提供 PDF 下载链接
-                st.download_button(
-                    label="Download PDF",
-                    data=pdf_buffer,
-                    file_name="ghg_emission_report.pdf",
-                    mime="application/pdf"
-                )
-
-    else:
-        st.error("The uploaded CSV file does not contain the required columns: 'BuildingName', 'AC', 'GAS', 'COLDING', 'COMMUTE', 'RENEWABLE'.")
+        else:
+            st.error("The uploaded CSV file does not contain the required columns: 'BuildingName', 'AC', 'GAS', 'COLDING', 'COMMUTE', 'RENEWABLE'.")
