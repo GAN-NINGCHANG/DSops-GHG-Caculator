@@ -11,7 +11,6 @@ Welcome to the GHG Calculator App! This application provides a user-friendly pla
 4. [Getting Started](#getting-started)
 5. [Usage](#usage)
 6. [Contributing](#contributing)
-7. [License](#license)
 
 ---
 
@@ -45,10 +44,12 @@ These inputs are processed to estimate the carbon footprint, allowing users to s
    git clone https://github.com/GAN-NINGCHANG/DSops-GHG-Caculator.git
    
 2. **Install Required Packages**:
-pip install -r requirements.txt
+   ```bash
+   pip install -r requirements.txt
 
 3. **Run the Application**:
-streamlit run main.py
+   ```bash
+   streamlit run main.py
 
 ## Usage
 1. **Open the app in your browser (usually at http://localhost:8501).**
@@ -57,8 +58,8 @@ streamlit run main.py
 
 ## Contributing
    We welcome contributions to make this app better! Please follow these steps if you'd like to contribute:
-   Fork the repository.
-   Create a new branch for your feature or bug fix.
-   Commit your changes.
-   Submit a pull request.
-   For major changes, please open an issue first to discuss your ideas.
+   **Fork the repository.**
+   **Create a new branch for your feature or bug fix.**
+   **Commit your changes.**
+   **Submit a pull request.**
+   **For major changes, please open an issue first to discuss your ideas.**
