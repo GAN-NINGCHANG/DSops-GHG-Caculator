@@ -58,8 +58,9 @@ These inputs are processed to estimate the carbon footprint, allowing users to s
 
 ## Contributing
    We welcome contributions to make this app better! Please follow these steps if you'd like to contribute:
-   **Fork the repository.**
-   **Create a new branch for your feature or bug fix.**
-   **Commit your changes.**
-   **Submit a pull request.**
-   **For major changes, please open an issue first to discuss your ideas.**
+   Fork the repository.
+   Create a new branch for your feature or bug fix.
+   Commit your changes.
+   Submit a pull request.
+   For major changes, please open an issue first to discuss your ideas.
+   
