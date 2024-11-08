@@ -17,13 +17,11 @@ df.columns = ['Building Type','size','Beginning Year','green mark rating','green
                 'AC Type','age of chiller','AC Efficiency','last chiller check year','LED percent',
                 'Use of PV','2017EUI','2018EUI','2019EUI','2020EUI']
 df = df.loc[:,['Building Type','Gross Floor Area','2020EUI']].dropna()
-df2 = pd.get_dummies(df, columns=['Building Type'])
-#df2['Beginning Year'] = 2020-df2['Beginning Year']
-
+df['Building Type'] = df['Building Type'].map({'Hotel':0,'Mixed Development':1,'Office':2,'Retail':3}).astype('category')
 
 ## Model Construction
-X = df2.drop('2020EUI',axis=1)
-y = df2['2020EUI']*df2['Gross Floor Area']
+X = df.drop('2020EUI',axis=1)
+y = df['2020EUI']*df['Gross Floor Area']
 scaler = StandardScaler()
 X = scaler.fit_transform(X)
 
