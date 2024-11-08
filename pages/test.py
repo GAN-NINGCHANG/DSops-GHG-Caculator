@@ -43,15 +43,9 @@ def page_1():
     try:
         waste_forecast_path = '/workspaces/DSops-GHG-Caculator/utils/all_arima_models.pkl'
         waste_forecasts = joblib.load(waste_forecast_path)  # 使用 joblib 加载废物预测数据
-        
-        # 提取预测值
-        waste_forecast_values = {}
-        for waste_type, arima_result in waste_forecasts.items():
-            # 确保我们获取到的是预测值而不是 ARIMA 对象
-            waste_forecast_values[waste_type] = arima_result.forecast(steps=1).iloc[0]  # 使用 iloc[0] 提取第一个预测值
     except FileNotFoundError:
-        st.error("Waste forecast file not found. Please check the path to waste_forecast.pkl.")
-        waste_forecast_values = None  # 如果文件加载失败，则数据设为 None
+        st.error("Waste forecast file not found. Please check the path to all_arima_models.pkl.")
+        waste_forecasts = None  # 如果文件加载失败，则数据设为 None
 
     # 主框架，使用字典来记录每类活动及其子活动
     if 'activities' not in st.session_state:
@@ -160,7 +154,7 @@ def page_1():
             # 使用水模型进行预测
             if SQFT > 0 and NWKER > 0 and PBA_Encoded > 0 and water_model is not None:
                 # 构建输入数据
-                input_data = np.array([[SQFT, NWKER]])
+                input_data = np.array([[SQFT, NWKER, PBA_Encoded]])
                 
                 # 进行预测
                 try:
@@ -192,9 +186,9 @@ def page_1():
                     NGCNS = total_gas_usage / 103.8 * 1.925 / 1000
 
             # 废物量预测
-            if waste_forecast_values is not None and NWKER > 0:
+            if waste_forecasts is not None and NWKER > 0:
                 total_waste = 0
-                for waste_type, per_capita_waste in waste_forecast_values.items():
+                for waste_type, per_capita_waste in waste_forecasts.items():
                     total_waste_amount = per_capita_waste * NWKER
                     waste_forecasts_per_type[waste_type] = total_waste_amount
                     total_waste += total_waste_amount

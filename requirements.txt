@@ -1,2 +1,10 @@
 streamlit
 pandas
+matplotlib
+scikit-learn
+statsmodels
+xgboost
+mysql-connector-python
+pymysql
+joblib
+requests
