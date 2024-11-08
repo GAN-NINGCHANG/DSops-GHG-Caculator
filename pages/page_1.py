@@ -2,7 +2,7 @@ import streamlit as st
 import base64
 
 def page_1():
-    # 将图片转换为 Base64
+    # 将图片转换为 Base6466
     def get_base64_image(file_path):
         with open(file_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode()
