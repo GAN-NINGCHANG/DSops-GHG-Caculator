@@ -2,6 +2,7 @@ import streamlit as st
 import base64
 import joblib  # 用于加载模型
 import numpy as np  # 用于数组操作
+import pandas as pd
 
 def page_1():
     # 将图片转换为 Base64
@@ -52,6 +53,14 @@ def page_1():
     except FileNotFoundError:
         st.error("Waste forecast file not found. Please check the path to waste_forecast.pkl.")
         waste_forecast_values = None  # 如果文件加载失败，则数据设为 None
+
+    # 加载电消耗模型
+    try:
+        electricity_model_path = '/workspaces/DSops-GHG-Caculator/utils/electricity_rf_model.pkl'
+        electricity_rf_model = joblib.load(electricity_model_path)
+    except FileNotFoundError:
+        st.error("Electricity model file not found. Please check the path to the electricity_rf_model.pkl.")
+        electricity_rf_model = None  # 如果文件加载失败，则模型设为 None
 
     # 主框架，使用字典来记录每类活动及其子活动
     if 'activities' not in st.session_state:
@@ -137,8 +146,8 @@ def page_1():
     # 转换用户输入为独立变量
     WTCNS = None  # 初始化水消耗量变量
     NGCNS = None  # 初始化天然气消耗量变量
+    ELEC_CONS = None  # 初始化电工消耗量变量
     waste_forecasts_per_type = {}  # 初始化废物预测类型变量
-    total_waste = None  # 初始化总废物预测变量
 
     if current_activity == "Basic Information":
         if len(st.session_state.activities["Basic Information"]) > 0:
@@ -150,23 +159,37 @@ def page_1():
 
             # 将 "Main building activity" 转换为编码值
             activity_mapping = {
-                "hotel": 1,
-                "mixed development": 2,
-                "office": 3,
-                "retail": 4
+                "hotel": 0,
+                "mixed development": 1,
+                "office": 2,
+                "retail": 3
             }
+            # 使用映射将活动类型列转换为数值
             PBA_Encoded = activity_mapping.get(basic_info.get("Main building activity"), 0)
 
+            # 转换为分类变量
+            PBA_Encoded_category = pd.Series([PBA_Encoded], dtype="category")[0]
+
             # 使用水模型进行预测
-            if SQFT > 0 and NWKER > 0 and PBA_Encoded > 0 and water_model is not None:
-                # 构建输入数据
-                input_data = np.array([[SQFT, NWKER]])
+            if SQFT > 0 and NWKER > 0 and water_model is not None:
+                # 构建输入数据，仅包含 SQFT 和 NWKER
+                input_data = np.array([[SQFT, NWKER, PBA_Encoded]])
                 
                 # 进行预测
                 try:
                     WTCNS = water_model.predict(input_data)[0]  # 预测水消耗量并保存到 WTCNS 变量
                 except Exception as e:
                     st.error(f"An error occurred during water consumption prediction: {e}")
+
+            # 电功消耗量预测
+            if SQFT > 0 and electricity_rf_model is not None:
+                # 构建输入数据，包含 SQFT 和 PBA_Encoded
+                input_data = np.array([[SQFT, PBA_Encoded]])
+                try:
+                    # 进行预测
+                    ELEC_CONS = electricity_rf_model.predict(input_data)[0]
+                except Exception as e:
+                    st.error(f"An error occurred during electricity consumption prediction: {e}")
 
             # 天然气消耗量预测
             ngcook_input = basic_info.get("NGCOOK")
@@ -193,27 +216,62 @@ def page_1():
 
             # 废物量预测
             if waste_forecast_values is not None and NWKER > 0:
-                total_waste = 0
                 for waste_type, per_capita_waste in waste_forecast_values.items():
-                    total_waste_amount = per_capita_waste * NWKER
-                    waste_forecasts_per_type[waste_type] = total_waste_amount
-                    total_waste += total_waste_amount
+                    # 单个废物类型的总量计算
+                    individual_waste_total = per_capita_waste * NWKER
+                    waste_forecasts_per_type[waste_type] = individual_waste_total
+
+    # 计算 CO2 排放量
+    electricity_conversion_factor = 0.4168  # kg CO2/kWh
+    natural_gas_conversion_factor = 2692.8  # kg CO2/t
+    water_conversion_factor = 1.3  # kg CO2/t
+    waste_conversion_factor = 3475.172  # kg CO2/t
+
+    # 电功排放量计算
+    if ELEC_CONS is not None:
+        electricity_emission = ELEC_CONS * electricity_conversion_factor
+
+    # 天然气排放量计算
+    if NGCNS is not None:
+        natural_gas_emission = NGCNS * natural_gas_conversion_factor
+
+    # 水排放量计算
+    if WTCNS is not None:
+        water_emission = WTCNS * water_conversion_factor
+
+    # 废物排放量计算
+    total_waste_amount = sum(waste_forecasts_per_type.values())
+    total_waste_emission = total_waste_amount * waste_conversion_factor
+
+    # 计算总的 GHG 排放量
+    total_ghg_emission = sum(filter(None, [
+        electricity_emission if 'electricity_emission' in locals() else None,
+        natural_gas_emission if 'natural_gas_emission' in locals() else None,
+        water_emission if 'water_emission' in locals() else None,
+        total_waste_emission if 'total_waste_emission' in locals() else None
+    ]))
 
     # 显示水消耗、天然气消耗和废物量预测结果
     st.markdown("### Prediction Results")
     if WTCNS is not None:
         st.write(f"**Predicted Water Consumption**: {WTCNS:.2f} cubic meters")
+        st.write(f"**Water GHG Emission**: {water_emission:.2f} kg CO2")
+
+    if ELEC_CONS is not None:
+        st.write(f"**Predicted Electricity Consumption**: {ELEC_CONS:.2f} kWh")
+        st.write(f"**Electricity GHG Emission**: {electricity_emission:.2f} kg CO2")
 
     if NGCNS is not None:
         st.write(f"**Predicted Natural Gas Consumption**: {NGCNS:.2f} tons")
+        st.write(f"**Natural Gas GHG Emission**: {natural_gas_emission:.2f} kg CO2")
 
     if waste_forecasts_per_type:
         st.markdown("**Waste Forecasts (Total for each type)**:")
         for waste_type, value in waste_forecasts_per_type.items():
             st.write(f"{waste_type}: {value:.2f} tons")
+        st.write(f"**Waste GHG Emission**: {total_waste_emission:.2f} kg CO2")
 
-    if total_waste is not None:
-        st.write(f"**Total Waste**: {total_waste:.2f} tons")
+    st.write(f"**Total GHG Emission**: {total_ghg_emission:.2f} kg CO2")
 
     # 修改 Previous 按钮逻辑，当 activity_index 为 0 时跳转到首页
     col1, _, col2 = st.columns([1, 8, 1]) 

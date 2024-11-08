@@ -73,3 +73,40 @@ if 'global_vars' not in st.session_state:
     }
 
 
+
+# 初始化全局变量键
+if 'global_vars' not in st.session_state:
+    st.session_state.global_vars = {
+        'Building Name': None,
+        'Postal code': None,
+        'Gross Floor Area': None,
+        'Average Headcount': None,
+        'Building Type': None,
+        'Electricy Amount': None,
+        'Renewable Energy Proportion': None,
+        'Natural Gas Amount': None,
+        'Water Amount': None,
+        'Ferrous Metal Amount': None,
+        'Paper/cardboard Amount': None,
+        'Construction & Demolition Amount': None,
+        'Plastics Amount': None,
+        'Food Amount': None,
+        'Horticultural Amount': None,
+        'Wood Amount': None,
+        'Ash & sludge Amount': None,
+        'Textile/Leather Amount': None,
+        'Used slag Amount': None,
+        'Non-Ferrous Metal Amount': None,
+        'Glass Amount': None,
+        'Scrap Tyres Amount': None,
+        'Others Amount': None,
+        'Drive Distance': None,
+        'Public Distance': None,
+        'Walk Distance': None,
+        'Electricity GHG Emission': None,
+        'Natural Gas GHG Emission': None,
+        'Water GHG Emission': None,
+        'Waste GHG Emission': None,
+        'Commute GHG Emission': None,
+        'Total GHG Emission': None
+    }
