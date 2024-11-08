@@ -8,7 +8,7 @@ def home():
             return base64.b64encode(image_file.read()).decode()
 
     # 获取 Base64 编码的背景图片
-    base64_image = get_base64_image("/workspaces/DSops-GHG-Caculator/src/background.jpg")
+    base64_image = get_base64_image("D:/DSS5105/src/background.jpg")
 
     # 自定义 CSS 样式设置背景图片和导航栏样式
     page_bg_img = f'''

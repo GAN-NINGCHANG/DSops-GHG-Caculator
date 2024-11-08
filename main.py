@@ -1,5 +1,6 @@
 import streamlit as st
 from pages import home, page_1, page_2, page_3
+from commuting_function import *
 
 st.set_page_config(layout="wide")  # 设置页面为宽屏布局
 

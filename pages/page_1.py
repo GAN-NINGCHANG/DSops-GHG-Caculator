@@ -9,7 +9,7 @@ def page_1():
         with open(file_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode()
 
-    base64_image = get_base64_image("/workspaces/DSops-GHG-Caculator/src/background.jpg")
+    base64_image = get_base64_image("D:/DSS5105/src/background.jpg")
 
     # 自定义 CSS 样式
     page_bg_img = f'''
