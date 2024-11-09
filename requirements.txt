@@ -8,3 +8,9 @@ mysql-connector-python
 pymysql
 joblib
 requests
+googlemaps
+numpy
+seaborn
+plotnine
+geopandas
+reportlab

@@ -13,7 +13,7 @@ def page_2():
         with open(file_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode()
     uploaded_file = None
-    base64_image = get_base64_image("D:/DSS5105/src/background.jpg")
+    base64_image = get_base64_image("/workspaces/DSops-GHG-Caculator/src/background.jpg")
     gmaps = googlemaps.Client(key = API_KEY)
     transport_emission=0
     # 自定义 CSS 样式，设置背景和进度条样式
