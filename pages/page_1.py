@@ -66,19 +66,14 @@ def page_1():
     if 'activities' not in st.session_state:
         st.session_state.activities = {
             "Basic Information": [],
-            "Electricity_consumption(kw)": [],
-            "Gas(m^3)": [],
-            "Refrigeration system": [],
-            "Water consumption(m^3/t)": [],
-            "Waste Management": [],
-            "Renewable Energy": []
+            "Electricity": [],
+            "Gas": [],
+            "Water": [],
+            "Waste": [],
         }
 
     if 'activity_index' not in st.session_state:
         st.session_state.activity_index = 0  # 当前活动的索引
-
-    if 'global_vars' not in st.session_state:
-        st.session_state.global_vars = {}
 
     activity_types = list(st.session_state.activities.keys())  # 活动类型列表
     total_activities = len(activity_types)  # 总活动数
@@ -88,20 +83,28 @@ def page_1():
     # 显示进度条和节点
     def display_progress_bar_with_nodes(progress, nodes, current_index):
         progress_bar_html = f"""
-        <div class="progress-bar-container">
-            <div class="progress-bar" style="width: {progress * 100}%;"></div>
+        <div style="width: 100%; background-color: #e0e0e0; height: 20px; border-radius: 10px;">
+            <div style="width: {progress * 100}%; background-color: #add8e6; height: 100%; border-radius: 10px;"></div>
         </div>
-        <div class="progress-nodes">
+        <div style="display: flex; justify-content: space-between; font-size: 0.6rem;">
         """
         for i, node in enumerate(nodes):
             if i == current_index:
-                progress_bar_html += f"<span style='font-weight: bold;'>⬤ {node}</span>"
+                progress_bar_html += f"<span style='color: #add8e6; font-weight: bold;'>⬤ {node}</span>"
             else:
                 progress_bar_html += f"<span>⬤ {node}</span>"
         progress_bar_html += "</div>"
+        
         st.markdown(progress_bar_html, unsafe_allow_html=True)
 
     display_progress_bar_with_nodes(progress_percentage, activity_types, st.session_state.activity_index)
+    # 定义添加和删除子活动的函数
+    def add_sub_activity(activity_type):
+        st.session_state.activities[activity_type].append({})
+
+    def remove_sub_activity(activity_type, index):
+        if len(st.session_state.activities[activity_type]) > 0:
+            st.session_state.activities[activity_type].pop(index)
 
     # 获取当前的活动类别
     current_activity = activity_types[st.session_state.activity_index]
@@ -109,69 +112,124 @@ def page_1():
     # 显示当前活动的标题
     st.subheader(f"Activity {st.session_state.activity_index + 1}: {current_activity}")
 
-    # 编辑当前活动的内容
+    # 添加子活动的按钮
+    if current_activity != "Basic Information":
+        if st.button("➕", key=f"add_{current_activity}"):
+            add_sub_activity(current_activity)
+
+    # 显示并编辑每个子活动
     if current_activity == "Basic Information":
+        # 确保 "Basic Information" 只有一个子活动
         if len(st.session_state.activities["Basic Information"]) == 0:
             st.session_state.activities["Basic Information"].append({})
 
         sub_activity = st.session_state.activities["Basic Information"][0]
 
         # 输入员工数量
-        sub_activity["Employee number"] = st.number_input(
+        st.session_state.global_vars['Average_Headcount'] = st.number_input(
             "Employee number", 
             min_value=0, value=sub_activity.get("Employee number", 0),
             key="operating_hours_h_Basic_Information"
         )
-        st.session_state.global_vars['Average_Headcount'] = sub_activity["Employee number"]
-        
+                
         # 输入建筑面积
-        sub_activity["Building area"] = st.number_input(
+        st.session_state.global_vars['Gross_Floor_Area'] = st.number_input(
             "Building area", 
             min_value=0.0, value=sub_activity.get("Building area", 0.0),
             key="power_kw_h_Basic_Information"
         )
-        st.session_state.global_vars['Gross_Floor_Area'] = sub_activity["Building area"]
-        
+                
         # 输入主建筑活动类型
-        sub_activity["Main building activity"] = st.selectbox(
+        st.session_state.global_vars['Building_Type'] = st.selectbox(
             "Select type of electricity consumption", 
             ["hotel", "office", "retail", "mixed development"],
             index=["hotel", "office", "retail", "mixed development"].index(sub_activity.get("Main building activity", "hotel")),
             key="electricity_component_Basic_Information"
         )
-        st.session_state.global_vars['Building_Type'] = sub_activity["Main building activity"]
-        
+                
         # 是否使用天然气烹饪
-        sub_activity["NGCOOK"] = st.selectbox(
-            "Does the building use natural gas for cooking?",
+        ngcook_input = st.selectbox(
+             "Does the building use natural gas for cooking?",
             ["Yes", "No"],
             index=["Yes", "No"].index(sub_activity.get("NGCOOK", "Yes")),
             key="ngcook_input_Basic_Information"
         )
-        st.session_state.global_vars['NGCOOK'] = sub_activity["NGCOOK"]
+        # 编辑其他活动类型的子活动
+    for i, sub_activity in enumerate(st.session_state.activities[current_activity]):
+        if current_activity != "Basic Information":
+            st.write(f"**{current_activity} {i + 1}**")
 
-        # 用户输入的准确数据覆盖
-        st.session_state.global_vars['Water_Amount'] = st.number_input(
-            "Actual Water Consumption (if known, in cubic meters)",
-            min_value=0.0, value=st.session_state.global_vars.get('Water_Amount', 0.0)
-        )
-        st.session_state.global_vars['Electricity_Amount'] = st.number_input(
-            "Actual Electricity Consumption (if known, in kWh)",
-            min_value=0.0, value=st.session_state.global_vars.get('Electricity_Amount', 0.0)
-        )
-        st.session_state.global_vars['Natural_Gas_Amount'] = st.number_input(
-            "Actual Natural Gas Consumption (if known, in tons)",
-            min_value=0.0, value=st.session_state.global_vars.get('Natural_Gas_Amount', 0.0)
-        )
+            if current_activity == "Electricity":
+                sub_activity["power_kw_h"] = st.number_input(
+                    "Power (kw/h)", 
+                    min_value=0.0, value=0.0, key=f"power_kw_h_{current_activity}_{i}"
+                )
+                # 更新全局变量
+                st.session_state.global_vars['Electricity_Amount'] = sub_activity["power_kw_h"]
 
-    # 转换用户输入为独立变量
-    WTCNS = st.session_state.global_vars.get('Water_Amount', None)  # 水消耗量变量
-    NGCNS = st.session_state.global_vars.get('Natural_Gas_Amount', None)  # 天然气消耗量变量
-    ELEC_CONS = st.session_state.global_vars.get('Electricity_Amount', None)  # 电消耗量变量
-    waste_forecasts_per_type = {}  # 初始化废物预测类型变量
+            elif current_activity == "Gas":
+                sub_activity["quantity"] = st.number_input(
+                    "Quantity (tons)", 
+                    min_value=0.0, value=0.0, key=f"gas_quantity_{current_activity}_{i}"
+                )
+                # 更新全局变量
+                st.session_state.global_vars['Natural_Gas_Amount'] = sub_activity["quantity"]
 
-    if current_activity == "Basic Information":
-        if len(st.session_state.activities["Basic Information"]) > 0:
+            elif current_activity == "Water":
+                sub_activity["quantity"] = st.number_input(
+                    "Quantity (m³/t)", 
+                    min_value=0.0, value=0.0, key=f"water_quantity_{current_activity}_{i}"
+                )
+                # 更新全局变量
+                st.session_state.global_vars['Water_Amount'] = sub_activity["quantity"]
+
+            elif current_activity == "Waste":
+                sub_activity["quantity"] = st.number_input(
+                    "Quantity (t)", 
+                    min_value=0.0, value=0.0, key=f"waste_quantity_{current_activity}_{i}"
+                )
+                # 更新全局变量
+                st.session_state.global_vars['Waste_Amount'] = sub_activity["quantity"]
+
+
+            if st.button("➖", key=f"remove_{current_activity}_{i}"):
+                remove_sub_activity(current_activity, i)
+                st.rerun()
+
+    def is_basic_information_complete():
+        for sub_activity in st.session_state.activities["Basic Information"]:
+            if (
+                sub_activity.get("Employee number", 0) <= 0 or 
+                sub_activity.get("Building area", 0.0) <= 0.0 or 
+                sub_activity.get("Main building activity") or
+                not sub_activity.get("NGCOOK")
+            ):
+                return False
+        return True
+    
+    # 检查是否有用户输入的消耗量
+    ELEC_CONS = st.session_state.global_vars.get('Electricity_Amount')
+    NGCNS = st.session_state.global_vars.get('Natural_Gas_Amount')
+    WTCNS = st.session_state.global_vars.get('Water_Amount')
+    WASTE_AMOUNT = st.session_state.global_vars.get('Waste_Amount')
+
+    # 电、水、天然气、废物的 CO2 转换因子
+    electricity_conversion_factor = 0.4168
+    natural_gas_conversion_factor = 2692.8
+    water_conversion_factor = 1.3
+    waste_conversion_factor = 3475.172
+
+    # 如果用户输入了所有消耗量，直接计算排放量；否则使用模型预测
+    if ELEC_CONS and NGCNS and WTCNS and WASTE_AMOUNT:
+        # 直接使用用户输入的消耗量计算排放量
+        st.session_state.global_vars['Electricity_GHG_Emission'] = ELEC_CONS * electricity_conversion_factor
+        st.session_state.global_vars['Natural_Gas_GHG_Emission'] = NGCNS * natural_gas_conversion_factor
+        st.session_state.global_vars['Water_GHG_Emission'] = WTCNS * water_conversion_factor
+        st.session_state.global_vars['Waste_GHG_Emission'] = WASTE_AMOUNT * waste_conversion_factor
+    else:
+        # 使用模型预测消耗量
+        # 如果当前活动是 Basic Information 且有输入数据
+        if current_activity == "Basic Information" and len(st.session_state.activities["Basic Information"]) > 0:
             basic_info = st.session_state.activities["Basic Information"][0]
             
             # 提取独立变量
@@ -189,68 +247,42 @@ def page_1():
             PBA_Encoded = activity_mapping.get(st.session_state.global_vars['Building_Type'], 0)
 
             # 使用水模型进行预测
-            if SQFT > 0 and NWKER > 0 and water_model is not None and WTCNS == 0.0:
+            if SQFT > 0 and NWKER > 0 and water_model is not None:
                 input_data = np.array([[SQFT, NWKER, PBA_Encoded]])
                 try:
-                    WTCNS = water_model.predict(input_data)[0]  # 预测水消耗量并保存到 WTCNS 变量
+                    WTCNS = water_model.predict(input_data)[0]  # 预测水消耗量
                     st.session_state.global_vars['Water_Amount'] = WTCNS
+                    st.session_state.global_vars['Water_GHG_Emission'] = WTCNS * water_conversion_factor
                 except Exception as e:
                     st.error(f"An error occurred during water consumption prediction: {e}")
+
             # 电功消耗量预测
-            if SQFT > 0 and electricity_rf_model is not None and ELEC_CONS == 0.0:
+            if SQFT > 0 and electricity_rf_model is not None:
                 input_data = np.array([[SQFT, PBA_Encoded]])
                 try:
                     ELEC_CONS = electricity_rf_model.predict(input_data)[0]
                     st.session_state.global_vars['Electricity_Amount'] = ELEC_CONS
+                    st.session_state.global_vars['Electricity_GHG_Emission'] = ELEC_CONS * electricity_conversion_factor
                 except Exception as e:
                     st.error(f"An error occurred during electricity consumption prediction: {e}")
 
             # 天然气消耗量预测
-            ngcook_input = basic_info.get("NGCOOK")
-            if ngcook_input == "Yes":
-                ngcook_input_encoded = 1
-            elif ngcook_input == "No":
-                ngcook_input_encoded = 2
-            else:
-                ngcook_input_encoded = None
-            
-            if ngcook_input_encoded is not None and NGCNS == 0.0:
+            ngcook_input_encoded = 1 if ngcook_input == "Yes" else 2 if ngcook_input == "No" else None
+            if ngcook_input_encoded is not None:
                 total_gas_usage = SQFT * (14.79 if ngcook_input_encoded == 1 else 6.501)
                 if total_gas_usage is not None:
                     NGCNS = total_gas_usage / 103.8 * 1.925 / 1000
                     st.session_state.global_vars['Natural_Gas_Amount'] = NGCNS
+                    st.session_state.global_vars['Natural_Gas_GHG_Emission'] = NGCNS * natural_gas_conversion_factor
 
             # 废物量预测
             if waste_forecast_values is not None and NWKER > 0:
                 for waste_type, per_capita_waste in waste_forecast_values.items():
                     individual_waste_total = per_capita_waste * NWKER
                     st.session_state.global_vars[f"{waste_type}_Amount"] = individual_waste_total
-
-    # 计算 CO2 排放量
-    electricity_conversion_factor = 0.4168
-    natural_gas_conversion_factor = 2692.8
-    water_conversion_factor = 1.3
-    waste_conversion_factor = 3475.172
-
-    # 电功排放量计算
-    if ELEC_CONS is not None:
-        electricity_emission = ELEC_CONS * electricity_conversion_factor
-        st.session_state.global_vars['Electricity_GHG_Emission'] = electricity_emission
-
-    # 天然气排放量计算
-    if NGCNS is not None:
-        natural_gas_emission = NGCNS * natural_gas_conversion_factor
-        st.session_state.global_vars['Natural_Gas_GHG_Emission'] = natural_gas_emission
-
-    # 水排放量计算
-    if WTCNS is not None:
-        water_emission = WTCNS * water_conversion_factor
-        st.session_state.global_vars['Water_GHG_Emission'] = water_emission
-
-    # 废物排放量计算
-    total_waste_amount = sum(waste_forecasts_per_type.values())
-    total_waste_emission = total_waste_amount * waste_conversion_factor
-    st.session_state.global_vars['Waste_GHG_Emission'] = total_waste_emission
+                    st.session_state.global_vars['Waste_Amount'] += individual_waste_total
+                WASTE_AMOUNT = st.session_state.global_vars['Waste_Amount']
+                st.session_state.global_vars['Waste_GHG_Emission'] = WASTE_AMOUNT * waste_conversion_factor
 
     # 计算总的 GHG 排放量
     total_ghg_emission = sum(filter(None, [
@@ -265,31 +297,27 @@ def page_1():
     st.markdown("### Prediction Results")
     if WTCNS is not None:
         st.write(f"**Predicted Water Consumption**: {WTCNS:.2f} cubic meters")
-        st.write(f"**Water GHG Emission**: {water_emission:.2f} kg CO2")
+        st.write(f"**Water GHG Emission**: {st.session_state.global_vars['Water_GHG_Emission']:.2f} kg CO2")
 
     if ELEC_CONS is not None:
         st.write(f"**Predicted Electricity Consumption**: {ELEC_CONS:.2f} kWh")
-        st.write(f"**Electricity GHG Emission**: {electricity_emission:.2f} kg CO2")
+        st.write(f"**Electricity GHG Emission**: {st.session_state.global_vars['Electricity_GHG_Emission']:.2f} kg CO2")
 
     if NGCNS is not None:
         st.write(f"**Predicted Natural Gas Consumption**: {NGCNS:.2f} tons")
-        st.write(f"**Natural Gas GHG Emission**: {natural_gas_emission:.2f} kg CO2")
+        st.write(f"**Natural Gas GHG Emission**: {st.session_state.global_vars['Natural_Gas_GHG_Emission']:.2f} kg CO2")
 
-    if waste_forecasts_per_type:
-        st.markdown("**Waste Forecasts (Total for each type)**:")
-        for waste_type, value in waste_forecasts_per_type.items():
-            st.write(f"{waste_type}: {value:.2f} tons")
-        st.write(f"**Waste GHG Emission**: {total_waste_emission:.2f} kg CO2")
+    if WASTE_AMOUNT:
+        st.markdown(f"**Predicted Waste Consumption**: {WASTE_AMOUNT:.2f} tons")
+        st.write(f"**Waste GHG Emission**: {st.session_state.global_vars['Waste_GHG_Emission']:.2f} kg CO2")
 
     st.write(f"**Total GHG Emission**: {total_ghg_emission:.2f} kg CO2")
 
-    # 修改 Previous 按钮逻辑，当 activity_index 为 0 时跳转到首页
-    col1, _, col2 = st.columns([1, 8, 1]) 
-    if col1.button("Previous"):
-        if st.session_state.activity_index > 0:
-            st.session_state.activity_index -= 1
-        elif st.session_state.activity_index == 0:
-            st.session_state.current_page = 0  # 返回首页
+        # 修改 Previous 按钮逻辑，当 activity_index 为 0 时跳转到首页
+    col1, col2 = st.columns(2)
+    if col1.button("⬅️ Previous") and st.session_state.activity_index > 0:
+        st.session_state.activity_index -= 1
+        st.rerun()
 
     # 修改 Next 按钮逻辑，当 activity_index 到达最后一个活动时跳转到下一页
     if col2.button("Next"):
