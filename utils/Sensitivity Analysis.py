@@ -34,13 +34,13 @@ class EmissionsSensitivityAnalyzer:
 
         Waste_GHG_Emissions = (
             params['Ferrous_Metal_Amount'] * Ferrous_Metal_Factor +
-            params['Paper_Cardboard_Amount'] * Paper_Cardboard_Factor +
+            params['Paper_cardboard_Amount'] * Paper_Cardboard_Factor +
             params['Construction_Demolition_Amount'] * Construction_Demolition_Factor +
             params['Plastics_Amount'] * Plastics_Factor +
             params['Food_Amount'] * Food_Factor +
             params['Horticultural_Amount'] * Horticultural_Factor +
             params['Wood_Amount'] * Wood_Factor +
-            params['Ash_Sludge_Amount'] * Ash_Sludge_Factor +
+            params['Ash_sludge_Amount'] * Ash_Sludge_Factor +
             params['Textile_Leather_Amount'] * Textile_Leather_Factor +
             params['Used_Slag_Amount'] * Used_Slag_Factor +
             params['Non_Ferrous_Metal_Amount'] * Non_Ferrous_Metal_Factor +
