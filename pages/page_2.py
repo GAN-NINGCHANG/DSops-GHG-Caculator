@@ -64,7 +64,6 @@ def page_2():
     else:
         data_ready = True
     
-    # 上传示例文件的下载链接
     
 
     # 提供上传 CSV 文件的选项
@@ -85,15 +84,16 @@ def page_2():
             transportation_data = pd.read_csv(uploaded_file)
             st.markdown("<p style='font-size: 20px; font-weight: bold;'>Uploaded Transportation Data</p>", unsafe_allow_html=True)
             st.dataframe(transportation_data)
-            if postal_code :
-                transportation_data['office'] = 'singapore ' +str(postal_code)
-            else:
-                transportation_data['office'] = company_name
-            data_ready = True
-            transport_emission = cal_Distance(transportation_data)
+
         except Exception as e:
             st.markdown("<p style='font-size: 20px; color: red;'>Error reading the CSV file. Please ensure it is in the correct format.</p>", unsafe_allow_html=True)
-            
+        
+        if postal_code :
+            transportation_data['office'] = 'singapore ' +str(postal_code)
+        else:
+            transportation_data['office'] = company_name
+        data_ready = True
+        transport_emission = cal_Distance(transportation_data)
             
          
     else:
@@ -115,7 +115,7 @@ def page_2():
             transit = mode_distribution[mode_distribution['Mode of Transport']=='TRANSIT']['distance'].sum()
             driving = mode_distribution[mode_distribution['Mode of Transport']=='DRIVING']['distance'].sum()
             transport_emission = (walking*0+transit*0.0431+driving*0.118)*365
-    
+
     if  company_name or postal_code:
         st.write(f"**Predicted commuting emission**: {transport_emission:.2f} kg CO2")
     # 页面底部的bui按钮布局
@@ -123,7 +123,6 @@ def page_2():
     with col1:
         if st.button("Previous"):
             st.session_state.current_page -= 1
-
     with col2:
         # 提交数据按钮
         if st.button("Submit Data"):
@@ -140,4 +139,3 @@ def page_2():
                     st.dataframe(transportation_data)
             else:
                 st.markdown("<p style='font-size: 20px; color: red;'>Please either upload a CSV file or fill in the detailed data.</p>", unsafe_allow_html=True)
-

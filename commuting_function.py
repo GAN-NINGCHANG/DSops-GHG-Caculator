@@ -82,7 +82,7 @@ def extract_lat_lng(address , data_type = "json"):
 
 #给详细版的文档，计算距离,返回DATAFRAME
 def cal_Distance(df):
-    df['mode_distance']=[np.NAN]*len(df)
+    df['mode_distance']=[np.nan]*len(df)
     for i in range(len(df)):
         data = gmaps.directions(df['home'][i],df['office'][i],mode=df['trans_mode'][i])
         df['mode_distance'][i] = get_mode_distance(data)
@@ -93,8 +93,7 @@ def cal_Distance(df):
         walking += i[i['mode'] == "WALKING"]['distance'].sum()
         transit += i[i['mode'] == "TRANSIT"]['distance'].sum()
         driving += i[i['mode'] == "DRIVING"]['distance'].sum()
-    transport_emission = (walking*0+transit*0.0431+driving*0.118)*365
-    return transport_emission
+    return [walking,transit,driving]
 
 #算得该点到各个PA的加权距离，权重为各个planning area 的人口比例
 def weighted_distances(lat, lon, df):

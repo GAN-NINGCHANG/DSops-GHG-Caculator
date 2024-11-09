@@ -10,8 +10,9 @@ from plotnine import *
 import geopandas as gpd
 import googlemaps
 from math import radians, sin, cos, sqrt, atan2
-API_KEY = "AIzaSyC10VMZks3BC9xaLESq5fDYb1dFG749xfM"
 
+API_KEY = "AIzaSyC10VMZks3BC9xaLESq5fDYb1dFG749xfM"
+gmaps = googlemaps.Client(key = API_KEY)
 #对buidling_loc函数返回值的解析，用于找到经纬度
 def get_location(x):
     if len(x) == 0:
@@ -83,7 +84,14 @@ def cal_Distance(df):
     for i in range(len(df)):
         data = gmaps.directions(df['home'][i],df['office'][i],mode=df['trans_mode'][i])
         df['mode_distance'][i] = get_mode_distance(data)
-    return df
+    walking = 0
+    transit = 0
+    driving = 0
+    for i in df['mode_distance']:
+        walking += i[i['mode'] == "WALKING"]['distance'].sum()
+        transit += i[i['mode'] == "TRANSIT"]['distance'].sum()
+        driving += i[i['mode'] == "DRIVING"]['distance'].sum()
+    return [walking,transit,driving]
 
 #算得该点到各个PA的加权距离，权重为各个planning area 的人口比例
 def weighted_distances(lat, lon, df):
