@@ -77,6 +77,9 @@ def page_1():
     if 'activity_index' not in st.session_state:
         st.session_state.activity_index = 0  # 当前活动的索引
 
+    if 'global_vars' not in st.session_state:
+        st.session_state.global_vars = {}
+
     activity_types = list(st.session_state.activities.keys())  # 活动类型列表
     total_activities = len(activity_types)  # 总活动数
     current_activity = activity_types[st.session_state.activity_index]
@@ -112,13 +115,14 @@ def page_1():
             st.session_state.activities["Basic Information"].append({})
 
         sub_activity = st.session_state.activities["Basic Information"][0]
-        
+
         # 输入员工数量
         sub_activity["Employee number"] = st.number_input(
             "Employee number", 
             min_value=0, value=sub_activity.get("Employee number", 0),
             key="operating_hours_h_Basic_Information"
         )
+        st.session_state.global_vars['Average_Headcount'] = sub_activity["Employee number"]
         
         # 输入建筑面积
         sub_activity["Building area"] = st.number_input(
@@ -126,6 +130,7 @@ def page_1():
             min_value=0.0, value=sub_activity.get("Building area", 0.0),
             key="power_kw_h_Basic_Information"
         )
+        st.session_state.global_vars['Gross_Floor_Area'] = sub_activity["Building area"]
         
         # 输入主建筑活动类型
         sub_activity["Main building activity"] = st.selectbox(
@@ -134,6 +139,7 @@ def page_1():
             index=["hotel", "office", "retail", "mixed development"].index(sub_activity.get("Main building activity", "hotel")),
             key="electricity_component_Basic_Information"
         )
+        st.session_state.global_vars['Building_Type'] = sub_activity["Main building activity"]
         
         # 是否使用天然气烹饪
         sub_activity["NGCOOK"] = st.selectbox(
@@ -142,11 +148,26 @@ def page_1():
             index=["Yes", "No"].index(sub_activity.get("NGCOOK", "Yes")),
             key="ngcook_input_Basic_Information"
         )
+        st.session_state.global_vars['NGCOOK'] = sub_activity["NGCOOK"]
+
+        # 用户输入的准确数据覆盖
+        st.session_state.global_vars['Water_Amount'] = st.number_input(
+            "Actual Water Consumption (if known, in cubic meters)",
+            min_value=0.0, value=st.session_state.global_vars.get('Water_Amount', 0.0)
+        )
+        st.session_state.global_vars['Electricity_Amount'] = st.number_input(
+            "Actual Electricity Consumption (if known, in kWh)",
+            min_value=0.0, value=st.session_state.global_vars.get('Electricity_Amount', 0.0)
+        )
+        st.session_state.global_vars['Natural_Gas_Amount'] = st.number_input(
+            "Actual Natural Gas Consumption (if known, in tons)",
+            min_value=0.0, value=st.session_state.global_vars.get('Natural_Gas_Amount', 0.0)
+        )
 
     # 转换用户输入为独立变量
-    WTCNS = None  # 初始化水消耗量变量
-    NGCNS = None  # 初始化天然气消耗量变量
-    ELEC_CONS = None  # 初始化电工消耗量变量
+    WTCNS = st.session_state.global_vars.get('Water_Amount', None)  # 水消耗量变量
+    NGCNS = st.session_state.global_vars.get('Natural_Gas_Amount', None)  # 天然气消耗量变量
+    ELEC_CONS = st.session_state.global_vars.get('Electricity_Amount', None)  # 电消耗量变量
     waste_forecasts_per_type = {}  # 初始化废物预测类型变量
 
     if current_activity == "Basic Information":
@@ -154,8 +175,8 @@ def page_1():
             basic_info = st.session_state.activities["Basic Information"][0]
             
             # 提取独立变量
-            SQFT = basic_info.get("Building area", 0.0)
-            NWKER = basic_info.get("Employee number", 0)
+            SQFT = st.session_state.global_vars['Gross_Floor_Area']
+            NWKER = st.session_state.global_vars['Average_Headcount']
 
             # 将 "Main building activity" 转换为编码值
             activity_mapping = {
@@ -165,29 +186,22 @@ def page_1():
                 "retail": 3
             }
             # 使用映射将活动类型列转换为数值
-            PBA_Encoded = activity_mapping.get(basic_info.get("Main building activity"), 0)
-
-            # 转换为分类变量
-            PBA_Encoded_category = pd.Series([PBA_Encoded], dtype="category")[0]
+            PBA_Encoded = activity_mapping.get(st.session_state.global_vars['Building_Type'], 0)
 
             # 使用水模型进行预测
-            if SQFT > 0 and NWKER > 0 and water_model is not None:
-                # 构建输入数据，仅包含 SQFT 和 NWKER
+            if SQFT > 0 and NWKER > 0 and water_model is not None and WTCNS == 0.0:
                 input_data = np.array([[SQFT, NWKER, PBA_Encoded]])
-                
-                # 进行预测
                 try:
                     WTCNS = water_model.predict(input_data)[0]  # 预测水消耗量并保存到 WTCNS 变量
+                    st.session_state.global_vars['Water_Amount'] = WTCNS
                 except Exception as e:
                     st.error(f"An error occurred during water consumption prediction: {e}")
-
             # 电功消耗量预测
-            if SQFT > 0 and electricity_rf_model is not None:
-                # 构建输入数据，包含 SQFT 和 PBA_Encoded
+            if SQFT > 0 and electricity_rf_model is not None and ELEC_CONS == 0.0:
                 input_data = np.array([[SQFT, PBA_Encoded]])
                 try:
-                    # 进行预测
                     ELEC_CONS = electricity_rf_model.predict(input_data)[0]
+                    st.session_state.global_vars['Electricity_Amount'] = ELEC_CONS
                 except Exception as e:
                     st.error(f"An error occurred during electricity consumption prediction: {e}")
 
@@ -200,56 +214,52 @@ def page_1():
             else:
                 ngcook_input_encoded = None
             
-            # 计算天然气消耗量
-            if ngcook_input_encoded is not None:
-                if ngcook_input_encoded == 1:
-                    total_gas_usage = SQFT * 14.79
-                elif ngcook_input_encoded == 2:
-                    total_gas_usage = SQFT * 6.501
-                else:
-                    total_gas_usage = None
-                    st.error("Invalid NGCOOK value. Please enter 'Yes' or 'No'.")
-
+            if ngcook_input_encoded is not None and NGCNS == 0.0:
+                total_gas_usage = SQFT * (14.79 if ngcook_input_encoded == 1 else 6.501)
                 if total_gas_usage is not None:
-                    # 计算天然气消耗量 (NGCNS)
                     NGCNS = total_gas_usage / 103.8 * 1.925 / 1000
+                    st.session_state.global_vars['Natural_Gas_Amount'] = NGCNS
 
             # 废物量预测
             if waste_forecast_values is not None and NWKER > 0:
                 for waste_type, per_capita_waste in waste_forecast_values.items():
-                    # 单个废物类型的总量计算
                     individual_waste_total = per_capita_waste * NWKER
-                    waste_forecasts_per_type[waste_type] = individual_waste_total
+                    st.session_state.global_vars[f"{waste_type}_Amount"] = individual_waste_total
 
     # 计算 CO2 排放量
-    electricity_conversion_factor = 0.4168  # kg CO2/kWh
-    natural_gas_conversion_factor = 2692.8  # kg CO2/t
-    water_conversion_factor = 1.3  # kg CO2/t
-    waste_conversion_factor = 3475.172  # kg CO2/t
+    electricity_conversion_factor = 0.4168
+    natural_gas_conversion_factor = 2692.8
+    water_conversion_factor = 1.3
+    waste_conversion_factor = 3475.172
 
     # 电功排放量计算
     if ELEC_CONS is not None:
         electricity_emission = ELEC_CONS * electricity_conversion_factor
+        st.session_state.global_vars['Electricity_GHG_Emission'] = electricity_emission
 
     # 天然气排放量计算
     if NGCNS is not None:
         natural_gas_emission = NGCNS * natural_gas_conversion_factor
+        st.session_state.global_vars['Natural_Gas_GHG_Emission'] = natural_gas_emission
 
     # 水排放量计算
     if WTCNS is not None:
         water_emission = WTCNS * water_conversion_factor
+        st.session_state.global_vars['Water_GHG_Emission'] = water_emission
 
     # 废物排放量计算
     total_waste_amount = sum(waste_forecasts_per_type.values())
     total_waste_emission = total_waste_amount * waste_conversion_factor
+    st.session_state.global_vars['Waste_GHG_Emission'] = total_waste_emission
 
     # 计算总的 GHG 排放量
     total_ghg_emission = sum(filter(None, [
-        electricity_emission if 'electricity_emission' in locals() else None,
-        natural_gas_emission if 'natural_gas_emission' in locals() else None,
-        water_emission if 'water_emission' in locals() else None,
-        total_waste_emission if 'total_waste_emission' in locals() else None
+        st.session_state.global_vars.get('Electricity_GHG_Emission'),
+        st.session_state.global_vars.get('Natural_Gas_GHG_Emission'),
+        st.session_state.global_vars.get('Water_GHG_Emission'),
+        st.session_state.global_vars.get('Waste_GHG_Emission')
     ]))
+    st.session_state.global_vars['Total_GHG_Emission'] = total_ghg_emission
 
     # 显示水消耗、天然气消耗和废物量预测结果
     st.markdown("### Prediction Results")
