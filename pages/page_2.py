@@ -15,6 +15,7 @@ def page_2():
     uploaded_file = None
     base64_image = get_base64_image("/workspaces/DSops-GHG-Caculator/src/background.jpg")
     gmaps = googlemaps.Client(key = API_KEY)
+    Average_Headcount=st.session_state.global_vars["Average_Headcount"]
     transport_emission=0
     # 自定义 CSS 样式，设置背景和进度条样式
     page_bg_img = f'''
@@ -56,7 +57,12 @@ def page_2():
         company_name = st.text_input("Company Name:")
     with col2:
         postal_code = st.text_input("Postal Code:")
-
+    #输入WFH天数
+    st.markdown("<p style='font-size: 20px;'>Please enter either Work from home days</p>", unsafe_allow_html=True)
+    col3 = st.columns(1)[0]
+    with col3:
+        WFH = st.number_input("WFH Days:", min_value=0, max_value=5, step=1)
+    
         # 校验公司名称和邮政编码的输入
     if not company_name and not postal_code:
         st.markdown("<p style='font-size: 20px; color: orange;'>Please fill in at least one of the fields: Company Name or Postal Code.</p>", unsafe_allow_html=True)
@@ -68,7 +74,7 @@ def page_2():
 
     # 提供上传 CSV 文件的选项
     if data_ready:
-        sample_file_path = "data/Random_Building_Data.csv"  # 假设文件位于项目的 data 文件夹中
+        sample_file_path = "./commuting_cal/data/example_input_file.csv"  # 假设文件位于项目的 data 文件夹中
         if os.path.exists(sample_file_path):
             with open(sample_file_path, "rb") as file:
                 sample_data = file.read()
@@ -93,8 +99,16 @@ def page_2():
         else:
             transportation_data['office'] = company_name
         data_ready = True
-        transport_emission = cal_Distance(transportation_data)
-            
+
+        try:
+            transport_distance_data = cal_Distance(transportation_data)
+            walking = transport_distance_data[0]
+            transit = transport_distance_data[1]
+            driving = transport_distance_data[2]
+        except IndexError :
+            st.markdown("<p style='font-size: 20px; color: red;'>Error reaching the building. Please ensure it is the correct address.</p>", unsafe_allow_html=True)
+
+        
          
     else:
         if postal_code or company_name :
@@ -114,28 +128,46 @@ def page_2():
             walking = mode_distribution[mode_distribution['Mode of Transport']=='WALKING']['distance'].sum()
             transit = mode_distribution[mode_distribution['Mode of Transport']=='TRANSIT']['distance'].sum()
             driving = mode_distribution[mode_distribution['Mode of Transport']=='DRIVING']['distance'].sum()
-            transport_emission = (walking*0+transit*0.0431+driving*0.118)*365
+
 
     if  company_name or postal_code:
+        transport_emission = (walking*0+transit*0.0431+driving*0.118)*2*250*(5-WFH)/5*Average_Headcount
         st.write(f"**Predicted commuting emission**: {transport_emission:.2f} kg CO2")
+        st.session_state.global_vars["Walk_Distance"] = walking
+        st.session_state.global_vars["Public_Distance"] = transit
+        st.session_state.global_vars["Drive_Distance"] = driving
+        st.session_state.global_vars["Commute_GHG_Emission"] = transport_emission
+        st.session_state.global_vars["Postal_code"] = postal_code
+        
     # 页面底部的bui按钮布局
     col1, _, col2 = st.columns([1, 8, 1]) 
     with col1:
         if st.button("Previous"):
             st.session_state.current_page -= 1
+    
+
     with col2:
         # 提交数据按钮
         if st.button("Submit Data"):
             if data_ready:
-                st.session_state.current_page += 1  # 确保页面跳转到下一页
-                st.markdown("<p style='font-size: 20px; color: green;'>Data submitted successfully!</p>", unsafe_allow_html=True)
-                st.markdown("<p style='font-size: 20px;'>Submitted Details:</p>", unsafe_allow_html=True)
-                if company_name:
-                    st.markdown(f"<p style='font-size: 20px;'><strong>Company Name:</strong> {company_name}</p>", unsafe_allow_html=True)
-                if postal_code:
-                    st.markdown(f"<p style='font-size: 20px;'><strong>Postal Code:</strong> {postal_code}</p>", unsafe_allow_html=True)
-                if uploaded_file is not None:
-                    st.markdown("<p style='font-size: 20px;'>Uploaded Transportation Data:</p>", unsafe_allow_html=True)
-                    st.dataframe(transportation_data)
+                # Ensure page navigation to the next page
+                st.session_state.current_page += 1
+                
+                # Define flags to display messages outside the column layout
+                data_submitted = True
             else:
-                st.markdown("<p style='font-size: 20px; color: red;'>Please either upload a CSV file or fill in the detailed data.</p>", unsafe_allow_html=True)
+                data_submitted = False  # Handle incomplete data submission
+
+    # Display submission success or failure message outside the column structure
+    if 'data_submitted' in locals() and data_submitted:
+        st.markdown("<p style='font-size: 20px; color: green;'>Data submitted successfully!</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 20px;'>Submitted Details:</p>", unsafe_allow_html=True)
+        
+        # Displaying additional details
+        if company_name:
+            st.markdown(f"<p style='font-size: 20px;'><strong>Company Name:</strong> {company_name}</p>", unsafe_allow_html=True)
+        if postal_code:
+            st.markdown(f"<p style='font-size: 20px;'><strong>Postal Code:</strong> {postal_code}</p>", unsafe_allow_html=True)
+        if uploaded_file is not None:
+            st.markdown("<p style='font-size: 20px;'>Uploaded Transportation Data:</p>", unsafe_allow_html=True)
+            st.dataframe(transportation_data)
