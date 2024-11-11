@@ -55,6 +55,7 @@ def page_2():
 
     with col1:
         company_name = st.text_input("Company Name:")
+        st.session_state.global_vars['Building_Name'] = company_name
     with col2:
         postal_code = st.text_input("Postal Code:")
     #输入WFH天数
@@ -137,7 +138,7 @@ def page_2():
         st.session_state.global_vars["Public_Distance"] = transit
         st.session_state.global_vars["Drive_Distance"] = driving
         st.session_state.global_vars["Commute_GHG_Emission"] = transport_emission
-        st.session_state.global_vars["Postal_code"] = postal_code
+        st.session_state.global_vars["Postal_Code"] = postal_code
         
     # 页面底部的bui按钮布局
     col1, _, col2 = st.columns([1, 8, 1]) 
