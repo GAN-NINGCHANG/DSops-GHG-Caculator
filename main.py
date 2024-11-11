@@ -39,14 +39,14 @@ with col1:
 if 'global_vars' not in st.session_state:
     st.session_state.global_vars = {
     'Building_Name': None,
-    'Postal_code': None,
+    'Postal_Code': None,
     'Gross_Floor_Area': None,
     'Average_Headcount': None,
     'Building_Type': None,
     'Cook': None,
     'Electricity_Amount': None,
     'Waste_Amount':0,
-    'Renewable_Energy_Proportion': None,
+    'Renewable_Energy_Proportion': 0,
     'Natural_Gas_Amount': None,
     'Water_Amount': None,
     'Ferrous_Metal_Amount': None,
@@ -66,12 +66,14 @@ if 'global_vars' not in st.session_state:
     'Drive_Distance': None,
     'Public_Distance': None,
     'Walk_Distance': None,
+    'Work_Frequency': 0,
     'Electricity_GHG_Emission': None,
     'Natural_Gas_GHG_Emission': None,
     'Water_GHG_Emission': None,
     'Waste_GHG_Emission': None,
     'Commute_GHG_Emission': None,
-    'Total_GHG_Emission': None
+    'Total_GHG_Emission': None,
+    'GHG_Unit_Intensity': None
     }
 
 
