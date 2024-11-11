@@ -3,6 +3,33 @@ from firebase_admin import credentials, firestore
 import pandas as pd
 from Estimation import Electricity, Water
 
+
+def add_data_to_firestore(data, collection_name):
+    """
+    将字典作为一行数据添加到指定的 Firebase Firestore 集合中。
+
+    参数：
+    data (dict): 要添加到 Firestore 的数据，键值对表示字段名称和值。
+    collection_name (str): Firestore 中集合的名称。
+
+    返回：
+    None
+    """
+        # 初始化 Firebase
+    if not firebase_admin._apps:
+        cred = credentials.Certificate("firebase_key.json")  
+        firebase_admin.initialize_app(cred)
+
+    db = firestore.client()
+    try:
+        # 获取集合的引用
+        collection_ref = db.collection(collection_name)
+        # 添加数据为新的文档
+        doc_ref = collection_ref.add(data)
+        print(f"Document added with ID: {doc_ref[1].id}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
 def update_models():
     """
     检查 Water 和 Electricity 数据的行数是否为 10 的倍数。
@@ -46,3 +73,4 @@ def update_models():
         # 更新 Electricity 模型
         Electricity.train_electricity_model(electricity_data_df)
         print("Model has been updated.")
+
