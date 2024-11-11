@@ -236,7 +236,7 @@ def page_1():
     # 如果用户输入了所有消耗量，直接计算排放量；否则使用模型预测
     if ELEC_CONS and NGCNS and WTCNS and WASTE_AMOUNT:
         # 直接使用用户输入的消耗量计算排放量
-        st.session_state.global_vars['Electricity_GHG_Emission'] = ELEC_CONS * electricity_conversion_factor
+        st.session_state.global_vars['Electricity_GHG_Emission'] = (ELEC_CONS * electricity_conversion_factor)*(1-st.session_state.global_vars['Renewable_Energy_Proportion'])
         st.session_state.global_vars['Natural_Gas_GHG_Emission'] = NGCNS * natural_gas_conversion_factor
         st.session_state.global_vars['Water_GHG_Emission'] = WTCNS * water_conversion_factor
         st.session_state.global_vars['Waste_GHG_Emission'] = WASTE_AMOUNT * waste_conversion_factor
