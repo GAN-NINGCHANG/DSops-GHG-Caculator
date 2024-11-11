@@ -9,6 +9,8 @@ def home():
 
     # 获取 Base64 编码的背景图片
     base64_image = get_base64_image("/workspaces/DSops-GHG-Caculator/src/background.jpg")
+    nus_logo_base64 = get_base64_image("src/nus_logo_full-vertical.png")
+    dsops_logo_base64 = get_base64_image("src/DSOps_logo.png")
 
     # 自定义 CSS 样式设置背景图片和导航栏样式
     page_bg_img = f'''
@@ -29,42 +31,56 @@ def home():
         box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
     }}
     .banner {{
-        background-color: rgba(255, 255, 255, 0.9); /* 白色背景 */
-        padding: 10px 0; /* 增加高度 */
+        width: 100vw;
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 0px 0;
         display: flex;
-        justify-content: space-around;
+        justify-content: space-between;
         align-items: center;
         margin: 0;
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+    }}
+    .banner img {{
+        height: 100px; /* 控制图片高度，使图片融入导航栏 */
+        margin: 0 0px; /* 设置图片的左右边距 */
     }}
     .banner a {{
         text-decoration: none;
-        color: #333; /* 黑色文字 */
-        font-size: 30px;
+        color: #333;
+        font-size: 20px;
         font-weight: bold;
         text-align: center;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
     }}
     .banner a:hover {{
-        color: #333; /* 鼠标悬停时文字颜色保持不变 */
+        color: #333;
+        background-color: #e0e0e0;
     }}
-    /* 修改后的按钮样式 */
+        /* 修改后的按钮样式，增加动画效果 */
     div.stButton > button {{
         background-color: #4CAF50;
         color: white;
-        padding: 15px 32px;
-        font-size: 25px;
+        padding: 30px 70px;
+        font-size: 100px;
         margin: 10px 0;
         border: none;
-        border-radius: 8px;
+        border-radius: 90px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 10px;
+        gap: 100px;
         font-weight: bold;
+        font-family: 'Verdana', sans-serif;
+        transition: transform 0.3s ease, background-color 0.3s ease;
     }}
     div.stButton > button:hover {{
-        background-color: #3e8e41; /* 鼠标悬停时变暗 */
-        color: white; /* 保持文字颜色不变 */
+        background-color: #3e8e41;
+        transform: scale(1.2); /* 鼠标悬停时按钮放大 */
     }}
     .button-icon {{
         margin-left: 8px;
@@ -78,45 +94,22 @@ def home():
     st.markdown(page_bg_img, unsafe_allow_html=True)
 
     st.markdown(
-        '''
+        f'''
         <div class="banner">
+            <img src="data:image/png;base64,{nus_logo_base64}" alt="NUS Logo">
             <a href="#introduction">Introduction</a>
             <a href="#about_us">About us</a>
             <a href="#how_it_works">How it works</a>
             <a href="#how_can_it_help_you">Help you</a>
             <a href="#contact">Contact Us</a>
+            <img src="data:image/png;base64,{dsops_logo_base64}" alt="DSOps Logo">
         </div>
         ''', 
         unsafe_allow_html=True
     )
 
-    # 顶部导航栏和图片布局
-    banner = st.container()
-    with banner: 
-        st.markdown('<div class="banner">', unsafe_allow_html=True)
-        
-        # 使用 st.columns 创建导航链接和图片布局
-        _, _, _, _, _, col6, col7 = st.columns(7)
-        with col6:
-            st.image('src/nus_logo_full-vertical.png', use_column_width=True)
-        with col7:
-            st.image('src/DSOps_logo.png', use_column_width=True)
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
     # Section: Introduction
     st.markdown('<a id="introduction"></a>', unsafe_allow_html=True)
-    st.markdown(
-        """
-        <style>
-        .large-image img {
-            width: 100%;
-            max-width: 600px;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
 
     col1, col2 = st.columns([1, 1.2])
     with col1: 
@@ -135,15 +128,33 @@ def home():
             unsafe_allow_html=True
         )
 
-        # "Take the Questionnaire" button
-
+        st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
         if st.button("Start exploring !"):
             st.session_state.current_page = 1
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    with col2: 
-        st.markdown('<div class="large-image">', unsafe_allow_html=True)
-        st.image("https://sg.centanet.com/SingaporeCMS/attachmentDownload.aspx?download/22-173-1596/5869484821_25488d66e0_b.jpg", use_column_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    with col2:
+        # 添加带有边框和阴影的 div 包装图片
+        st.markdown(
+            """
+            <div style="
+                display: flex; 
+                justify-content: center; 
+                margin-top: 300px; /* 向下移动图片 */
+            ">
+                <div class="large-image" style="
+                    border-radius: 10px; 
+                    overflow: hidden; 
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 添加阴影效果 */
+                    width: 90%; /* 设置图片容器宽度 */
+                    max-width: 1200px; /* 限制最大宽度 */
+                ">
+                    <img src="https://sg.centanet.com/SingaporeCMS/attachmentDownload.aspx?download/22-173-1596/5869484821_25488d66e0_b.jpg" style="width: 100%;">
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     # Section: About us
     st.markdown('<a id="about_us"></a>', unsafe_allow_html=True)
@@ -211,7 +222,7 @@ def home():
     st.markdown(
         """
         <p style="font-size:25px; color:black">
-            Feel free to reach us at xxxxs@nus.edu.sg
+            Feel free to reach us at e1234567@nus.edu.sg
         </p>
         """,
         unsafe_allow_html=True
