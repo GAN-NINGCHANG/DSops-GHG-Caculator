@@ -4,36 +4,31 @@ from sklearn.model_selection import train_test_split, GridSearchCV, KFold, cross
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, mean_absolute_percentage_error, make_scorer
 import pickle
-# from sqlalchemy import create_engine
 
-def train_electricity_model():
-        #     # MySQL 数据库连接信息
-    # user = 'your_username'         # 用户名
-    # password = 'your_password'     # 密码
-    # host = 'your_host'             # 主机（例如 'localhost' 或 IP 地址）
-    # port = '3306'                  # MySQL 端口，通常为 3306
-    # database = 'your_database'     # 数据库名称
-    # table_name = 'your_table'      # 表名（包含水资源数据）
+def train_electricity_model(dataframe):
+    """
+    训练随机森林模型以预测建筑的电力消耗
 
-    # # 创建数据库连接
-    # engine = create_engine(f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}')
+    参数：
+    dataframe (pd.DataFrame): 包含训练数据的 DataFrame
+
+    返回：
+    best_model: 训练好的随机森林模型
+    """
+    # 数据预处理：将建筑类型映射到数值编码，并转换建筑面积为数值格式
+    dataframe['PBA_Encoded'] = dataframe['Building Type'].map({
+        'Hotel': 0,
+        'Mixed Development': 1,
+        'Office': 2,
+        'Retail': 3
+    }).astype('category')
     
-    # # 从数据库中读取数据
-    # query = f"SELECT * FROM {table_name}"
-    # df = pd.read_sql(query, engine)
-    # 数据读取与预处理
-    df = pd.read_excel('data/Listing of Building Energy Performance Data for 2020.xlsx').iloc[:, 3:]
-    df.columns = ['PBA_Encoded', 'size', 'Beginning Year', 'green mark rating', 'green mark year',
-                  'green mark type', 'SQFT', 'AC percent', 'monthly occupation rate', 'number of hotel rooms',
-                  'AC Type', 'age of chiller', 'AC Efficiency', 'last chiller check year', 'LED percent',
-                  'Use of PV', '2017EUI', '2018EUI', '2019EUI', '2020EUI']
-    df = df.loc[:, ['SQFT', 'PBA_Encoded', '2020EUI']].dropna()
-    df['SQFT'] = df['SQFT'] * 10.76
-    df['PBA_Encoded'] = df['PBA_Encoded'].map({'Hotel': 0, 'Mixed Development': 1, 'Office': 2, 'Retail': 3}).astype('category')
-
-    # 模型特征和目标变量
-    X = df.drop('2020EUI', axis=1)
-    y = df['2020EUI'] * df['SQFT']
+    # 将建筑面积 (SQFT) 转换为数值格式并转换为平方英尺
+    dataframe['SQFT'] = dataframe['Gross Floor Area'].str.replace(',', '').astype(float) * 10.76
+    
+    # 选择模型所需的特征和目标变量
+    X = dataframe[['SQFT', 'PBA_Encoded']]
+    y = dataframe['2020EUI'] * dataframe['SQFT']
 
     # 定义评分器
     r2_scorer = make_scorer(r2_score, greater_is_better=True)
@@ -61,12 +56,11 @@ def train_electricity_model():
     best_params = grid_search.best_params_
     print("Best parameters:", best_params)
 
-    # 用最佳参数重新训练模型
+    # 使用最佳参数重新训练模型
     best_model = RandomForestRegressor(**best_params, random_state=21)
-    k = 5
-    kf = KFold(n_splits=k, shuffle=True, random_state=24)
+    kf = KFold(n_splits=5, shuffle=True, random_state=24)
 
-    # 计算 R^2 和 MAPE
+    # 计算 R² 和 MAPE
     r2_scores = cross_val_score(best_model, X, y, cv=kf, scoring=r2_scorer)
     mean_r2 = np.mean(r2_scores)
     print("R^2 scores:", r2_scores)
@@ -89,3 +83,12 @@ def train_electricity_model():
 
     # 输出模型和评价指标
     print("Training complete. Model and evaluation metrics are available.")
+
+    # 返回训练好的模型
+    return best_model
+
+# # 加载数据
+# df = pd.read_csv('data/Electricity.csv')
+
+# # 训练模型
+# train_electricity_model(df)
