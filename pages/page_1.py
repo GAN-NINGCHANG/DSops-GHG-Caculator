@@ -16,13 +16,20 @@ def page_1():
     page_bg_img = f'''
     <style>
     .stApp {{
-        background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url("data:image/jpg;base64,{base64_image}");
+        background: linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.2)), url("data:image/jpg;base64,{base64_image}");
         background-size: cover;
         background-repeat: no-repeat;
         background-attachment: fixed;
         background-position: center;
-        color: black;
+        color: #333;
         font-family: 'Arial', sans-serif;
+    }}
+    .block-container {{
+        background-color: rgba(255, 255, 255, 0.5); /* 更加透明的背景 */
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+        width: 80%;
     }}
     </style>
     '''
@@ -83,14 +90,14 @@ def page_1():
     # 显示进度条和节点
     def display_progress_bar_with_nodes(progress, nodes, current_index):
         progress_bar_html = f"""
-        <div style="width: 100%; background-color: #e0e0e0; height: 20px; border-radius: 10px;">
-            <div style="width: {progress * 100}%; background-color: #add8e6; height: 100%; border-radius: 10px;"></div>
+        <div style="width: 100%; background-color: #e0e0e0; height: 30px; border-radius: 10px;">
+            <div style="width: {progress * 100}%; background-color: #44901E; height: 100%; border-radius: 10px;"></div>
         </div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.6rem;">
+        <div style="display: flex; justify-content: space-between; font-size: 1.5rem;">
         """
         for i, node in enumerate(nodes):
             if i == current_index:
-                progress_bar_html += f"<span style='color: #add8e6; font-weight: bold;'>⬤ {node}</span>"
+                progress_bar_html += f"<span style='color: #44901E; font-weight: bold;'>⬤ {node}</span>"
             else:
                 progress_bar_html += f"<span>⬤ {node}</span>"
         progress_bar_html += "</div>"
@@ -154,6 +161,13 @@ def page_1():
             index=["Yes", "No"].index(sub_activity.get("NGCOOK", "Yes")),
             key="ngcook_input_Basic_Information"
         )
+         # 输入可持续能源比例
+        st.session_state.global_vars['Renewable_Energy_Proportion'] = st.number_input(
+            "Renewable Energy Proportion", 
+            min_value=0.0, value=sub_activity.get("Renewable Energy Proportion", 0.0),
+            key="Renewable_Energy_precentage_Basic_Information"
+        )
+
         # 编辑其他活动类型的子活动
     for i, sub_activity in enumerate(st.session_state.activities[current_activity]):
         if current_activity != "Basic Information":
@@ -293,31 +307,103 @@ def page_1():
     ]))
     st.session_state.global_vars['Total_GHG_Emission'] = total_ghg_emission
 
-    # 显示水消耗、天然气消耗和废物量预测结果
-    st.markdown("### Prediction Results")
-    if WTCNS is not None:
-        st.write(f"**Predicted Water Consumption**: {WTCNS:.2f} cubic meters")
-        st.write(f"**Water GHG Emission**: {st.session_state.global_vars['Water_GHG_Emission']:.2f} kg CO2")
+    # 设置主标题和样式
+    st.markdown("<h2 style='text-align: center; color: #4CAF50;'>Prediction Results</h2>", unsafe_allow_html=True)
+    
+    # 添加提示文本
+    st.markdown("<p style='text-align: center; color: #777777; font-size: 20px;'>Don't worry, if precise data is unavailable, we can provide estimates based on basic information.</p>", unsafe_allow_html=True)
+    
+    # 使用 Streamlit 的列布局，将数据分为数量和排放量两组
+    col1, col2 = st.columns(2)
 
-    if ELEC_CONS is not None:
-        st.write(f"**Predicted Electricity Consumption**: {ELEC_CONS:.2f} kWh")
-        st.write(f"**Electricity GHG Emission**: {st.session_state.global_vars['Electricity_GHG_Emission']:.2f} kg CO2")
+    # 在第一列中显示数量信息，使用卡片式背景并加入图标
+    with col1:
+        st.markdown("<h4 style='color: #2F4F4F;'>Consumption Quantities</h4>", unsafe_allow_html=True)
+        if WTCNS is not None:
+            st.markdown(f"""
+                <div style="background-color: #f0f8ff; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center;">
+                    <span style="font-size: 24px; margin-right: 10px;">💧</span>
+                    <strong>Predicted Water Consumption:</strong>
+                    <span style="color: #333; font-weight: bold; font-size: 20px; margin-left: auto;">{WTCNS:.2f} cubic meters</span>
+                </div>
+            """, unsafe_allow_html=True)
+        if ELEC_CONS is not None:
+            st.markdown(f"""
+                <div style="background-color: #f0f8ff; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center;">
+                    <span style="font-size: 24px; margin-right: 10px;">💡</span>
+                    <strong>Predicted Electricity Consumption:</strong>
+                    <span style="color: #333; font-weight: bold; font-size: 20px; margin-left: auto;">{ELEC_CONS:.2f} kWh</span>
+                </div>
+            """, unsafe_allow_html=True)
+        if NGCNS is not None:
+            st.markdown(f"""
+                <div style="background-color: #f0f8ff; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center;">
+                    <span style="font-size: 24px; margin-right: 10px;">🔥</span>
+                    <strong>Predicted Natural Gas Consumption:</strong>
+                    <span style="color: #333; font-weight: bold; font-size: 20px; margin-left: auto;">{NGCNS:.2f} tons</span>
+                </div>
+            """, unsafe_allow_html=True)
+        if WASTE_AMOUNT:
+            st.markdown(f"""
+                <div style="background-color: #f0f8ff; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center;">
+                    <span style="font-size: 24px; margin-right: 10px;">🗑️</span>
+                    <strong>Predicted Waste Consumption:</strong>
+                    <span style="color: #333; font-weight: bold; font-size: 20px; margin-left: auto;">{WASTE_AMOUNT:.2f} tons</span>
+                </div>
+            """, unsafe_allow_html=True)
 
-    if NGCNS is not None:
-        st.write(f"**Predicted Natural Gas Consumption**: {NGCNS:.2f} tons")
-        st.write(f"**Natural Gas GHG Emission**: {st.session_state.global_vars['Natural_Gas_GHG_Emission']:.2f} kg CO2")
-
-    if WASTE_AMOUNT:
-        st.markdown(f"**Predicted Waste Consumption**: {WASTE_AMOUNT:.2f} tons")
-        st.write(f"**Waste GHG Emission**: {st.session_state.global_vars['Waste_GHG_Emission']:.2f} kg CO2")
-
-    st.write(f"**Total GHG Emission**: {total_ghg_emission:.2f} kg CO2")
+    # 在第二列中显示排放量信息，使用卡片式背景并加入图标
+    with col2:
+        st.markdown("<h4 style='color: #2F4F4F;'>GHG Emissions</h4>", unsafe_allow_html=True)
+        if WTCNS is not None:
+            st.markdown(f"""
+                <div style="background-color: #ffebcd; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center;">
+                    <span style="font-size: 24px; margin-right: 10px;">💧</span>
+                    <strong>Water GHG Emission:</strong>
+                    <span style="color: #333; font-weight: bold; font-size: 20px; margin-left: auto;">{st.session_state.global_vars['Water_GHG_Emission']:.2f} kg CO2</span>
+                </div>
+            """, unsafe_allow_html=True)
+        if ELEC_CONS is not None:
+            st.markdown(f"""
+                <div style="background-color: #ffebcd; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center;">
+                    <span style="font-size: 24px; margin-right: 10px;">💡</span>
+                    <strong>Electricity GHG Emission:</strong>
+                    <span style="color: #333; font-weight: bold; font-size: 20px; margin-left: auto;">{st.session_state.global_vars['Electricity_GHG_Emission']:.2f} kg CO2</span>
+                </div>
+            """, unsafe_allow_html=True)
+        if NGCNS is not None:
+            st.markdown(f"""
+                <div style="background-color: #ffebcd; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center;">
+                    <span style="font-size: 24px; margin-right: 10px;">🔥</span>
+                    <strong>Natural Gas GHG Emission:</strong>
+                    <span style="color: #333; font-weight: bold; font-size: 20px; margin-left: auto;">{st.session_state.global_vars['Natural_Gas_GHG_Emission']:.2f} kg CO2</span>
+                </div>
+            """, unsafe_allow_html=True)
+        if WASTE_AMOUNT:
+            st.markdown(f"""
+                <div style="background-color: #ffebcd; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center;">
+                    <span style="font-size: 24px; margin-right: 10px;">🗑️</span>
+                    <strong>Waste GHG Emission:</strong>
+                    <span style="color: #333; font-weight: bold; font-size: 20px; margin-left: auto;">{st.session_state.global_vars['Waste_GHG_Emission']:.2f} kg CO2</span>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        # 总排放量的卡片设计
+        st.markdown(f"""
+            <div style="background-color: #c7ccad; padding: 10px; border-radius: 10px; margin-top: 20px; margin-bottom: 40px; display: flex; align-items: center;">
+                <span style="font-size: 24px; margin-right: 10px;">🌍</span>
+                <strong>Total GHG Emission:</strong>
+                <span style="color: #333; font-weight: bold; font-size: 24px; margin-left: auto;">{total_ghg_emission:.2f} kg CO2</span>
+            </div>
+        """, unsafe_allow_html=True)
 
         # 修改 Previous 按钮逻辑，当 activity_index 为 0 时跳转到首页
-    col1, col2 = st.columns(2)
-    if col1.button("⬅️ Previous") and st.session_state.activity_index > 0:
-        st.session_state.activity_index -= 1
-        st.rerun()
+    col1, _, col2 = st.columns([1, 8, 1]) 
+    if col1.button("Previous"):
+        if st.session_state.activity_index > 0:
+            st.session_state.activity_index -= 1
+        elif st.session_state.activity_index == 0:
+            st.session_state.current_page = 0  # 返回首页
 
     # 修改 Next 按钮逻辑，当 activity_index 到达最后一个活动时跳转到下一页
     if col2.button("Next"):
