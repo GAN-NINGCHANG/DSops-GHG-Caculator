@@ -56,7 +56,6 @@ if 'global_vars' not in st.session_state:
     'Food_Amount': None,
     'Horticultural_Amount': None,
     'Wood_Amount': None,
-    'Waste_Amount': None,
     'Ash_sludge_Amount': None,
     'Textile_Leather_Amount': None,
     'Used_slag_Amount': None,
@@ -67,14 +66,12 @@ if 'global_vars' not in st.session_state:
     'Drive_Distance': None,
     'Public_Distance': None,
     'Walk_Distance': None,
-    'Work_Frequency': None,
     'Electricity_GHG_Emission': None,
     'Natural_Gas_GHG_Emission': None,
     'Water_GHG_Emission': None,
     'Waste_GHG_Emission': None,
     'Commute_GHG_Emission': None,
     'Total_GHG_Emission': None
-<<<<<<< HEAD
     }
 
 
@@ -116,6 +113,4 @@ if 'global_vars' not in st.session_state:
         'Waste GHG Emission': None,
         'Commute GHG Emission': None,
         'Total GHG Emission': None
-=======
->>>>>>> 6917b88 (Co-authored-by: Liu Anjie <e1351237@u.nus.edu>)
     }
