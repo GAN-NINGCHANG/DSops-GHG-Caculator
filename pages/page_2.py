@@ -148,7 +148,7 @@ def page_2():
 
     with col2:
         # 提交数据按钮
-        if st.button("Submit Data"):
+        if st.button("Submit"):
             if data_ready:
                 # Ensure page navigation to the next page
                 st.session_state.current_page += 1
