@@ -11,6 +11,27 @@ class EmissionsSensitivityAnalyzer:
         """
         self.base_values = base_values
         self.results = {}
+        self.Electricity_Factor = 0.4168           # Unit: kg CO2/kWh
+        self.Natural_Gas_Factor = 2692.8           # Unit: kg CO2/t
+        self.Water_Factor = 1.3                    # Unit: kg CO2/t
+        self.Ferrous_Metal_Factor = -707.3592663   # Unit: kg CO2/t
+        self.Paper_Cardboard_Factor = 5985.56917   # Unit: kg CO2/t
+        self.Construction_Demolition_Factor = 97.79380174 # Unit: kg CO2/t
+        self.Plastics_Factor = 2905.710927         # Unit: kg CO2/t
+        self.Food_Factor = 3585.89118              # Unit: kg CO2/t
+        self.Horticultural_Factor = -28.46620278   # Unit: kg CO2/t
+        self.Wood_Factor = 1395.634268             # Unit: kg CO2/t
+        self.Ash_Sludge_Factor = 86.9761           # Unit: kg CO2/t
+        self.Textile_Leather_Factor = 4605.975149  # Unit: kg CO2/t
+        self.Used_Slag_Factor = -6.342589587       # Unit: kg CO2/t
+        self.Non_Ferrous_Metal_Factor = -707.3592663 # Unit: kg CO2/t
+        self.Glass_Factor = 532.8208748            # Unit: kg CO2/t
+        self.Scrap_Tyres_Factor = 3963.915656      # Unit: kg CO2/t
+        self.Others_Factor = 38.17394179           # Unit: kg CO2/t
+        self.Drive_Factor = 0.118                  # Unit: kg CO2/km
+        self.Public_Factor = 0.0431                # Unit: kg CO2/km
+        self.Walk_Factor = 0.0                     # Unit: kg CO2/km
+         
         
     def calculate_emissions(self, params):
         """
@@ -18,41 +39,41 @@ class EmissionsSensitivityAnalyzer:
         """
         Electricity_GHG_Emissions = (
             params['Electricity_Amount'] * 
-            Electricity_Factor * 
+            self.Electricity_Factor * 
             (1 - params['Renewable_Energy_Proportion'])
         )
 
         Natural_Gas_GHG_Emissions = (
             params['Natural_Gas_Amount'] * 
-            Natural_Gas_Factor
+            self.Natural_Gas_Factor
         )
 
         Water_GHG_Emissions = (
             params['Water_Amount'] *
-            Water_Factor
+            self.Water_Factor
         )
 
         Waste_GHG_Emissions = (
-            params['Ferrous_Metal_Amount'] * Ferrous_Metal_Factor +
-            params['Paper_cardboard_Amount'] * Paper_Cardboard_Factor +
-            params['Construction_Demolition_Amount'] * Construction_Demolition_Factor +
-            params['Plastics_Amount'] * Plastics_Factor +
-            params['Food_Amount'] * Food_Factor +
-            params['Horticultural_Amount'] * Horticultural_Factor +
-            params['Wood_Amount'] * Wood_Factor +
-            params['Ash_sludge_Amount'] * Ash_Sludge_Factor +
-            params['Textile_Leather_Amount'] * Textile_Leather_Factor +
-            params['Used_Slag_Amount'] * Used_Slag_Factor +
-            params['Non_Ferrous_Metal_Amount'] * Non_Ferrous_Metal_Factor +
-            params['Glass_Amount'] * Glass_Factor +
-            params['Scrap_Tyres_Amount'] * Scrap_Tyres_Factor +
-            params['Others_Amount'] * Others_Factor
+            params['Ferrous_Metal_Amount'] * self.Ferrous_Metal_Factor +
+            params['Paper_cardboard_Amount'] * self.Paper_Cardboard_Factor +
+            params['Construction_Demolition_Amount'] * self.Construction_Demolition_Factor +
+            params['Plastics_Amount'] * self.Plastics_Factor +
+            params['Food_Amount'] * self.Food_Factor +
+            params['Horticultural_Amount'] * self.Horticultural_Factor +
+            params['Wood_Amount'] * self.Wood_Factor +
+            params['Ash_sludge_Amount'] * self.Ash_Sludge_Factor +
+            params['Textile_Leather_Amount'] * self.Textile_Leather_Factor +
+            params['Used_Slag_Amount'] * self.Used_Slag_Factor +
+            params['Non_Ferrous_Metal_Amount'] * self.Non_Ferrous_Metal_Factor +
+            params['Glass_Amount'] * self.Glass_Factor +
+            params['Scrap_Tyres_Amount'] * self.Scrap_Tyres_Factor +
+            params['Others_Amount'] * self.Others_Factor
         )
 
         Commute_GHG_Emissions = (
-            (params['Drive_Distance'] * Drive_Factor +
-            params['Public_Distance'] * Public_Factor +
-            params['Walk_Distance'] * Walk_Factor) *
+            (params['Drive_Distance'] * self.Drive_Factor +
+            params['Public_Distance'] * self.Public_Factor +
+            params['Walk_Distance'] * self.Walk_Factor) *
             params['Work_Frequency']
         )
 
@@ -192,3 +213,5 @@ class EmissionsSensitivityAnalyzer:
             }
             
         return improvement_suggestions
+    
+     
