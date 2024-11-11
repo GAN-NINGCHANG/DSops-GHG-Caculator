@@ -15,3 +15,5 @@ plotnine
 geopandas
 reportlab
 firebase_admin
+re
+scipy.stats
