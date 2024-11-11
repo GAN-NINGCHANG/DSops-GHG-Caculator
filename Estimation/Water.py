@@ -3,30 +3,23 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import r2_score
 import xgboost as xgb
 import pickle
-# from sqlalchemy import create_engine
 
-def train_water_model():
-    #     # MySQL 数据库连接信息
-    # user = 'your_username'         # 用户名
-    # password = 'your_password'     # 密码
-    # host = 'your_host'             # 主机（例如 'localhost' 或 IP 地址）
-    # port = '3306'                  # MySQL 端口，通常为 3306
-    # database = 'your_database'     # 数据库名称
-    # table_name = 'your_table'      # 表名（包含水资源数据）
+def train_water_model(dataframe):
+    """
+    训练 XGBoost 模型以预测水消耗量
 
-    # # 创建数据库连接
-    # engine = create_engine(f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}')
+    参数：
+    dataframe (pd.DataFrame): 包含训练数据的 DataFrame
     
-    # # 从数据库中读取数据
-    # query = f"SELECT * FROM {table_name}"
-    # df = pd.read_sql(query, engine)
-    # 加载数据
-    df = pd.read_csv('data/Water data2.csv', encoding='ISO-8859-1')
+    返回：
+    xgb_best_model: 训练好的 XGBoost 模型
+    """
+    # 将 PBA 列设置为类别变量
+    dataframe['PBA'] = dataframe['PBA'].replace({1: 0, 2: 1, 3: 2, 4: 3}).astype('category')
     
-    # 将 PBA.1 列设置为类别变量
-    df['PBA'] = df['PBA'].replace({1: 0, 2: 1, 3: 2, 4: 3}).astype('category')
-    X = df[['SQFT', 'NWKER', 'PBA']]
-    y = df['WTCNS']
+    # 特征和目标变量
+    X = dataframe[['SQFT', 'NWKER', 'PBA']]
+    y = dataframe['WTCNS']
 
     # 数据集拆分
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
@@ -64,5 +57,5 @@ def train_water_model():
     # 返回训练好的模型
     return xgb_best_model
 
-# 调用函数以训练和保存模型
-train_water_model()
+# df = pd.read_csv('data/Water_data.csv', encoding='ISO-8859-1')
+# train_water_model(df)
