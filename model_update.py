@@ -66,8 +66,8 @@ def update_models():
     water_columns_order = ["PBA", "TYPE", "SQFT", "NWKER", "WTCNS"]
     water_data_df = fetch_and_order_firestore_data("Water_data", water_columns_order)
 
-    # 检查行数是否为 10 的倍数
-    if len(electricity_data_df) % 10 == 0 or len(water_data_df) % 10 == 0:
+    # 检查行数是否为 1000 的倍数
+    if len(electricity_data_df) % 1000 == 0 or len(water_data_df) % 1000 == 0:
         # 更新 Water 模型
         Water.train_water_model(water_data_df)
         # 更新 Electricity 模型
