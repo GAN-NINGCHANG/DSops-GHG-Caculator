@@ -94,8 +94,8 @@ class EmissionsSensitivityAnalyzer:
             emissions = []
             base = self.base_values[param]
             
-                # Calculat GUI variation in the given range
-            if param == 'work_frequency':
+            # Calculate GUI variation in the given range
+            if param == 'Work_Frequency':
                 # Change the variation range of work_frequency based on its original value 
                 lower_bound = max(0, base - 0.2)  # no less than 0
                 upper_bound = min(1, base + 0.2)  # no more than 1
@@ -105,7 +105,7 @@ class EmissionsSensitivityAnalyzer:
                     test_values[param] = value
                     
                     variations.append((value - base) * 100)  
-                    emissions.append(self.calculate_emissions(test_values))
+                    emissions.append(self.calculate_emissions(test_values)) 
             else:
                 # For other variables
                 for i in np.linspace(-variation_percentage/100, variation_percentage/100, steps):
@@ -139,7 +139,7 @@ class EmissionsSensitivityAnalyzer:
         
         plt.barh(y_pos, list(self.sorted_impacts.values()))
         plt.yticks(y_pos, list(self.sorted_impacts.keys()))
-        plt.xlabel('Variation of Emissions (tCO2e)')
+        plt.xlabel('Variation of Emissions (kgCO2e)')
         plt.title('Parameter Sensitivity Analysis (10% Variation)')
         
         return plt
