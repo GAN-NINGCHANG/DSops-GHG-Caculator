@@ -1,27 +1,29 @@
 import streamlit as st
 import pandas as pd
-import altair as alt
 import numpy as np
-from io import BytesIO
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-import base64
-from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, PageBreak
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+import matplotlib.pyplot as plt
+import io
+import base64
+import altair as alt
 from utils import sensitivity_analysis
 import re
+import model_update
+import os
 
 
 def page_3():
-    # 将图片转换为 Base64
+    # Change graph to Base64
     def get_base64_image(file_path):
         with open(file_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode()
 
-    # 使用指定的背景图
+    # Background photo
     base64_image = get_base64_image("/workspaces/DSops-GHG-Caculator/src/background.jpg")
-
-    # 自定义 CSS 样式设置背景图片
     page_bg_img = f'''
     <style>
     .stApp {{
@@ -45,24 +47,24 @@ def page_3():
     
     # Extract value in former pages
     waste_amounts = {
-        'Ferrous_Metal_Amount': 1.19,
-        'Paper_cardboard_Amount': 149.93,
-        'Construction_Demolition_Amount': 3.37,
-        'Plastics_Amount': 157.32,
-        'Food_Amount': 107.54,
-        'Horticultural_Amount': 6.25,
-        'Wood_Amount': 25.18,
-        'Ash_sludge_Amount': 33.63,
-        'Textile_Leather_Amount': 34.81,
-        'Used_slag_Amount': 0.56,
-        'Non_Ferrous_Metal_Amount': 0.15,
-        'Glass_Amount': 11.40,
-        'Scrap_Tyres_Amount': 0.17,
-        'Others_Amount': 39.22
+        'Ferrous_Metal_Amount': 0.00119,
+        'Paper_cardboard_Amount': 0.14993,
+        'Construction_Demolition_Amount': 0.00337,
+        'Plastics_Amount': 0.15732,
+        'Food_Amount': 0.10754,
+        'Horticultural_Amount': 0.00625,
+        'Wood_Amount': 0.02518,
+        'Ash_sludge_Amount': 0.03363,
+        'Textile_Leather_Amount': 0.03481,
+        'Used_slag_Amount': 0.00056,
+        'Non_Ferrous_Metal_Amount': 0.00015,
+        'Glass_Amount': 0.01140,
+        'Scrap_Tyres_Amount': 0.00017,
+        'Others_Amount': 0.03922
     }
     
     building_name = st.session_state.global_vars.get('Building_Name')
-    postal_code = st.session_state.global_vars.get('Postal_code')
+    postal_code = st.session_state.global_vars.get('Postal_Code')
     gross_floor_area = st.session_state.global_vars.get('Gross_Floor_Area')
     average_headcount = st.session_state.global_vars.get('Average_Headcount')
     building_type = st.session_state.global_vars.get('Building_Type')
@@ -103,7 +105,7 @@ def page_3():
     drive_distance = st.session_state.global_vars.get('Drive_Distance')
     public_distance = st.session_state.global_vars.get('Public_Distance')
     walk_distance = st.session_state.global_vars.get('Walk_Distance')
-    work_frequency = 1 - st.session_state.global_vars.get('Work_Frequency')/5
+    work_frequency = st.session_state.global_vars.get('Work_Frequency')
     electricity_ghg_emission = st.session_state.global_vars.get('Electricity_GHG_Emission')
     natural_gas_ghg_emission = st.session_state.global_vars.get('Natural_Gas_GHG_Emission')
     water_ghg_emission = st.session_state.global_vars.get('Water_GHG_Emission')
@@ -112,6 +114,16 @@ def page_3():
     total_ghg_emission = st.session_state.global_vars.get('Total_GHG_Emission')
     st.session_state.global_vars['GHG_Unit_Intensity'] = total_ghg_emission / gross_floor_area
     ghg_unit_intensity = st.session_state.global_vars.get('GHG_Unit_Intensity')
+
+    mapping = {
+    'Hotel': 0,
+    'Mixed Development': 1,
+    'Office': 2,
+    'Retail': 3
+    }
+
+    PBA = mapping.get(building_type, -1)  
+    PBA = pd.Categorical([PBA])  
 
     # Save value in former pages
     data = {
@@ -152,10 +164,30 @@ def page_3():
         'Total_GHG_Emission': total_ghg_emission,
         'GHG_Unit_Intensity':ghg_unit_intensity
     }
+    
+    data_for_water = {
+        'PBA': PBA,
+        'SQFT': gross_floor_area,
+        'NWKER': average_headcount,
+        'TYPE': building_type,
+        'WTCNS': water_amount,
+    }
 
+    data_for_electricity = {
+        'Gross_Floor_Area': gross_floor_area,
+        'Building Type': building_type,
+        '2020EUI': electricity_amount/gross_floor_area,
+    }    
+    
+    # Add data to database
+    model_update.add_data_to_firestore(data,"Full_table")
+    model_update.add_data_to_firestore(data_for_water,"Water_data")
+    model_update.add_data_to_firestore(data_for_electricity,"Electricity_data")
+    model_update.update_models()
+
+    # Read file
     df_new = pd.DataFrame([data])
     file_path = "/workspaces/DSops-GHG-Caculator/data/Full_table.csv"
-    #df_new.to_csv(file_path, mode='a', header=False, index=False)
 
     # Title and description
     st.title("🌍 Building GHG Emissions Results")
@@ -167,7 +199,7 @@ def page_3():
     df = pd.read_csv(file_path)
     df = pd.concat([df,df_new],axis=0,ignore_index=True)
 
-    # Calculate five closest buildings with the building
+    # Find most similar 5 buildings
     def calculate_euclidean_distance(df, building_name):
         user_row = df[df['Building_Name'] == building_name].iloc[:, -7:-2].values
         other_rows = df[df['Building_Name'] != building_name].iloc[:, -7:-2].values
@@ -243,6 +275,7 @@ def page_3():
     st.altair_chart(stacked_bar + mean_line, use_container_width=True)
     
     ## Sensitivity Analysis
+    st.markdown("### 🔍 Sensitivity Analysis")
     base_values = {
         'Electricity_Amount': electricity_amount,
         'Renewable_Energy_Proportion': renewable_energy_proportion,
@@ -287,47 +320,94 @@ def page_3():
     st.markdown("### 📝 Download Emission Report")
     st.info("Generate a PDF report to save or share the GHG emissions data.")
     if st.button("Generate PDF"):
-        pdf_buffer = BytesIO()
-        c = canvas.Canvas(pdf_buffer, pagesize=letter)
+        # Prepare content
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        styles = getSampleStyleSheet()
+        story = []
 
-        # 添加标题
-        c.setFont("Helvetica-Bold", 16)
-        c.drawString(100, 800, "GHG Emissions Report")
+        # Add title
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            spaceAfter=30
+        )
+        story.append(Paragraph(f"Building GHG Emissions Report - {building_name}", title_style))
+        story.append(Spacer(1, 20))
 
-        # 添加段落
-        c.setFont("Helvetica", 12)
-        c.drawString(100, 780, f"Company: {building_name}")
-        c.drawString(100, 760, f"Largest GHG emission factor: {max_consumption}")
-
-        # 准备数据
-        data = [['Company', 'AC', 'GAS', 'COLDING', 'COMMUTE', 'RENEWABLE']]
-        row = [building_name] + df[df['Building_Name'] == building_name].iloc[0, 1:].tolist()
-        data.append(row)
-
-        # 创建表格
-        table = Table(data)
-        table.setStyle(TableStyle([
+        # Basic infomation graph
+        basic_info = [
+            ["Building Information", "Value"],
+            ["Building Name", building_name],
+            ["Postal Code", postal_code],
+            ["Gross Floor Area", f"{gross_floor_area} sqm"],
+            ["Average Headcount", str(average_headcount)],
+            ["Building Type", building_type]
+        ]
+        basic_table = Table(basic_info, colWidths=[200, 200])
+        basic_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 14),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
+        story.append(basic_table)
+        story.append(Spacer(1, 20))
 
-        # 绘制表格和图表
-        table.wrapOn(c, 100, 580)
-        table.drawOn(c, 100, 580)
+        # GHG emissions graph
+        story.append(Paragraph("GHG Emissions Breakdown", styles['Heading2']))
+        emissions_data = [
+            ["Emission Source", "Amount (kg CO2e)"],
+            ["Electricity", f"{electricity_ghg_emission:.2f}"],
+            ["Natural Gas", f"{natural_gas_ghg_emission:.2f}"],
+            ["Water", f"{water_ghg_emission:.2f}"],
+            ["Waste", f"{waste_ghg_emission:.2f}"],
+            ["Commute", f"{commute_ghg_emission:.2f}"],
+            ["Total", f"{total_ghg_emission:.2f}"]
+        ]
+        emissions_table = Table(emissions_data, colWidths=[200, 200])
+        emissions_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        story.append(emissions_table)
+        story.append(Spacer(1, 20))
 
-        c.save()
-        pdf_buffer.seek(0)
+        # Save the compared graphs to PDF
+        chart_path = "temp_chart.png"
+        stacked_bar.save(chart_path)
+        story.append(PageBreak())
+        story.append(Paragraph("Emissions Comparison with Similar Buildings", styles['Heading2']))
+        story.append(Image(chart_path, width=400, height=300))
+        story.append(Spacer(1, 20))
 
-        # 提供 PDF 下载链接
+        # Add sensitivity analysis result
+        story.append(Paragraph("Sensitivity Analysis Results", styles['Heading2']))
+        improvements = analyzer.analyze_top_3_impact(base_values)
+        for i, (var, details) in enumerate(improvements.items(), start=1):
+            story.append(Paragraph(f"Top {i} Influencing Factor: {var}", styles['Heading3']))
+            story.append(Paragraph(f"Potential GHG Reduction: {details['reduction_amount']} kg CO2e", styles['Normal']))
+            story.append(Paragraph(f"Suggestion: {details['suggestion']}", styles['Normal']))
+            story.append(Spacer(1, 10))
+
+        # Generate PDF
+        doc.build(story)
+        buffer.seek(0)
+
+        # Add download button
         st.download_button(
-            label="Download PDF",
-            data=pdf_buffer,
-            file_name="ghg_emission_report.pdf",
-            mime="application/pdf"
+            label="📥 Download PDF Report",
+            data=buffer,
+            file_name=f"GHG_Report_{building_name}.pdf",
+            mime="application/pdf",
         )
-        
+        # Remove temp file
+        if os.path.exists(chart_path):
+            os.remove(chart_path)
