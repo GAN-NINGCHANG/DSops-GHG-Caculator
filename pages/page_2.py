@@ -50,11 +50,11 @@ def page_2():
     st.markdown("<h3 style='color: #4CAF50; font-size: 24px;'>Enter Details Manually</h3>", unsafe_allow_html=True)
 
         # 公司名称和邮政编码输入
-    st.markdown("<p style='font-size: 20px;'>Please enter either the Company Name or the Postal Code (at least one is required):</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 20px;'>Please enter either the Building Name or the Postal Code (at least one is required):</p>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
 
     with col1:
-        company_name = st.text_input("Company Name:")
+        company_name = st.text_input("Building Name:")
         st.session_state.global_vars['Building_Name'] = company_name
     with col2:
         postal_code = st.text_input("Postal Code:")
@@ -63,10 +63,11 @@ def page_2():
     col3 = st.columns(1)[0]
     with col3:
         WFH = st.number_input("WFH Days:", min_value=0, max_value=5, step=1)
+        st.session_state.global_vars['Work_Frequency'] = 1-(WFH/5)
     
         # 校验公司名称和邮政编码的输入
     if not company_name and not postal_code:
-        st.markdown("<p style='font-size: 20px; color: orange;'>Please fill in at least one of the fields: Company Name or Postal Code.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 20px; color: orange;'>Please fill in at least one of the fields: Building Name or Postal Code.</p>", unsafe_allow_html=True)
         data_ready = False
     else:
         data_ready = True
@@ -166,7 +167,7 @@ def page_2():
         
         # Displaying additional details
         if company_name:
-            st.markdown(f"<p style='font-size: 20px;'><strong>Company Name:</strong> {company_name}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='font-size: 20px;'><strong>Building Name:</strong> {company_name}</p>", unsafe_allow_html=True)
         if postal_code:
             st.markdown(f"<p style='font-size: 20px;'><strong>Postal Code:</strong> {postal_code}</p>", unsafe_allow_html=True)
         if uploaded_file is not None:
