@@ -16,3 +16,5 @@ geopandas
 reportlab
 firebase_admin
 scipy
+pytest
+vl-convert-python
