@@ -141,7 +141,7 @@ def page_1():
                 
         # 输入建筑面积
         st.session_state.global_vars['Gross_Floor_Area'] = st.number_input(
-            "Building area", 
+            "Building area (Square meter)", 
             min_value=0.0, value=sub_activity.get("Building area", 0.0),
             key="power_kw_h_Basic_Information"
         )
