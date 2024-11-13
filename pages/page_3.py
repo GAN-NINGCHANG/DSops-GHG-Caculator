@@ -36,7 +36,7 @@ def page_3():
         font-family: 'Arial', sans-serif;
     }}
     .block-container {{
-        background-color: rgba(255, 255, 255, 0.25);
+        background-color: rgba(255, 255, 255, 0.8);
         padding: 2rem;
         border-radius: 15px;
         box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
