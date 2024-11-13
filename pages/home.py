@@ -140,7 +140,7 @@ def home():
             <div style="
                 display: flex; 
                 justify-content: center; 
-                margin-top: 300px; /* 向下移动图片 */
+                margin-top: 100px; /* 向下移动图片 */
             ">
                 <div class="large-image" style="
                     border-radius: 10px; 
