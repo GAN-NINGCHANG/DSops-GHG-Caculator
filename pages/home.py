@@ -25,7 +25,7 @@ def home():
         font-family: 'Arial', sans-serif;
     }}
     .block-container {{
-        background-color: rgba(255, 255, 255, 0.25); /* 更加透明的背景 */
+        background-color: rgba(255, 255, 255, 0.35); /* 更加透明的背景 */
         padding: 2rem;
         border-radius: 15px;
         box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
