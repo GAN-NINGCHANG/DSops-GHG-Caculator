@@ -1,3 +1,7 @@
+
+![4 Various Types of Energy](https://github.com/user-attachments/assets/2a26755e-eb00-415b-ac6f-1247a120eed1)
+
+
 # DSOps-GHG-Calculator App
 
 Welcome to the GHG Calculator App! This application provides a user-friendly platform to estimate greenhouse gas emissions for buildings based on factors like floor size, electricity usage data, and location information. Our goal is to empower users with actionable insights to make environmentally conscious decisions, contributing to a more sustainable future.
@@ -27,15 +31,13 @@ As a group of data science students with a passion for sustainability, we create
 The GHG Emission Calculator operates through a streamlined, three-step process:
 
 1. Data Input
-Users Provide Building Information
-Enter basic building information, which are critical for accurate emissions calculation.
+
+Users Provide basic building information, which are critical for accurate emissions calculation.
 
 2. Processing and Analysis
-Algorithm Estimates GHG Emissions
 Our model processes the data, applying machine learning techniques and historical data trends to calculate a reliable estimate of GHG emissions.
 
-3. Results and Recommendations
-Emissions Breakdown and Efficiency Tips
+3. Results and Emissions Breakdown 
 View your building’s estimated carbon footprint, segmented by sources. Get insights to make improvements.
 
 These inputs are processed to estimate the carbon footprint, allowing users to see potential areas for energy efficiency improvements.
