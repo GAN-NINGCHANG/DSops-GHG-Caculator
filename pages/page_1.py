@@ -175,7 +175,7 @@ def page_1():
 
             if current_activity == "Electricity":
                 sub_activity["power_kw_h"] = st.number_input(
-                    "Power (kw/h)", 
+                    "Power (kwh)", 
                     min_value=0.0, value=0.0, key=f"power_kw_h_{current_activity}_{i}"
                 )
                 # 更新全局变量
