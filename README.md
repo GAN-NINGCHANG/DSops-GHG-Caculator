@@ -1,6 +1,6 @@
 # DSOps-GHG-Calculator App
 
-Welcome to the GHG Calculator App! This application provides a user-friendly platform to estimate carbon emissions for buildings based on factors like floor size, air conditioning parameters, and location. Our goal is to empower users with actionable insights to make environmentally conscious decisions, contributing to a more sustainable future.
+Welcome to the GHG Calculator App! This application provides a user-friendly platform to estimate greenhouse gas emissions for buildings based on factors like floor size, electricity usage data, and location information. Our goal is to empower users with actionable insights to make environmentally conscious decisions, contributing to a more sustainable future.
 
 ---
 
@@ -15,19 +15,28 @@ Welcome to the GHG Calculator App! This application provides a user-friendly pla
 ---
 
 ## Introduction
-As a group of data science students with a passion for sustainability, we created this app to help building owners, architects, and policymakers understand and reduce their buildings' carbon emissions. This app estimates emissions based on building characteristics, enabling users to identify key areas for energy efficiency improvements.
+As a group of data science students with a passion for sustainability, we created this app to help building owners, architects, and policymakers understand and reduce their buildings' Greenhouse Gas emissions. This app estimates emissions based on building characteristics, enabling users to identify key areas for energy efficiency improvements.
 
 ## Features
 - **User-Friendly Interface**: Easily input building data and view emissions estimates.
-- **Accurate Greenhouse Gas Emission Estimations**: Algorithm-based estimation using factors such as floor size, air conditioning specifications, and geographic location.
+- **Accurate Greenhouse Gas Emission Estimations**: Algorithm-based estimation using factors such as floor size, number of employee working in the building, and geographic location.
 - **Insights for Action**: View emission estimates and get actionable insights for potential reductions.
 - **Supports Sustainable Decision-Making**: Ideal for building owners, architects, and policymakers.
 
 ## How It Works
-Our algorithm calculates carbon emissions based on:
-1. **Floor Size**: Larger areas typically require more energy for heating, cooling, and lighting.
-2. **Air Conditioning Parameters**: The type, capacity, and usage patterns of air conditioning systems significantly affect energy consumption.
-3. **Location**: Geographic factors influence greenhouse gas emission from building users' daily commute to work.
+The GHG Emission Calculator operates through a streamlined, three-step process:
+
+1. Data Input
+Users Provide Building Information
+Enter basic building information, which are critical for accurate emissions calculation.
+
+2. Processing and Analysis
+Algorithm Estimates GHG Emissions
+Our model processes the data, applying machine learning techniques and historical data trends to calculate a reliable estimate of GHG emissions.
+
+3. Results and Recommendations
+Emissions Breakdown and Efficiency Tips
+View your building’s estimated carbon footprint, segmented by sources. Get insights to make improvements.
 
 These inputs are processed to estimate the carbon footprint, allowing users to see potential areas for energy efficiency improvements.
 
