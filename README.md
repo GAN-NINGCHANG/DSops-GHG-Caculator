@@ -69,7 +69,8 @@ The GHG Emission Calculator operates through a streamlined, three-step process:
 
 ---
 
-<span style="color:red; font-weight:bold;">⚠️ Recommendation: It is strongly advised to run this application directly in Codespaces for optimal performance. If running locally, ensure to update file paths accordingly.</span>  
+<span style="color:red; font-weight:bold;">⚠️ Recommendation: It is strongly advised to run this application directly in Codespaces for optimal performance. If running locally, ensure to update file paths accordingly.</span>
+
 <span style="color:red; font-weight:bold;">⚠️ Security Notice: To ensure smooth operation, please contact the administrator at e1351391@u.nus.edu to obtain the necessary access keys.</span>
 
 ## Usage
